@@ -4,7 +4,16 @@ set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 ANDROID_APP="$ROOT/apps/android-local-voice"
 CODEX_APP="$ROOT/apps/codex-voice"
+WINDOWS_LOCAL_APP="$ROOT/apps/windows-local-voice"
 status=0
+
+if ! (
+  cd "$WINDOWS_LOCAL_APP" || exit 1
+  npm test
+); then
+  echo "Windows local voice dock app verification failed." >&2
+  status=1
+fi
 
 if ! (
   cd "$ANDROID_APP" || exit 1
