@@ -96,6 +96,19 @@ data class MainUiState(
     val assistantDraft: String = "",
     val error: String? = null,
 ) {
+    val selectedPiperRuntimeAvailable: Boolean
+        get() = when (ttsBackend) {
+            jp.stackchan.localvoicepoc.voicevox.TtsBackend.PIPER -> piperAarPresent
+            jp.stackchan.localvoicepoc.voicevox.TtsBackend.PIPER2 -> piper2Available
+            else -> false
+        }
+
+    val canPreparePiper: Boolean
+        get() = selectedPiperRuntimeAvailable && canStartModelMutation
+
+    val canLoadPiper: Boolean
+        get() = canPreparePiper && piperModelPresent && piperConfigPresent && piperDictionaryPresent
+
     val canStartModelMutation: Boolean
         get() = !pocketVoices.busy && !referenceRecording.open && sdkStatus is SdkBootstrap.Status.Ready && phase == ConversationPhase.IDLE && !audioTransition && !modelSetupRunning && !piperBusy && !voicevoxBusy && !sanoBusy && !pocketBusy && !ttsPreviewRunning && !voicevoxDiagnosticRunning
 

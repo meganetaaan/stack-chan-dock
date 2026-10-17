@@ -482,7 +482,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun prepareRecommendedPiper() {
         if (!mutableState.value.ttsBackend.isPiper) return
         val current = mutableState.value
-        if (!current.canStartModelMutation) return
+        if (!current.canPreparePiper) return
         if (!piperStore.hasConfirmedRecommendedTerms()) {
             mutableState.update {
                 it.copy(piperTermsConfirmationRequired = true, error = null)
@@ -493,7 +493,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun confirmRecommendedPiperTerms() {
-        if (!mutableState.value.canStartModelMutation) return
+        if (!mutableState.value.canPreparePiper) return
         piperStore.confirmRecommendedTerms()
         mutableState.update { it.copy(piperTermsConfirmationRequired = false) }
         startRecommendedPiperSetup()
@@ -505,7 +505,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun loadPiper() {
         if (!mutableState.value.ttsBackend.isPiper) return
-        if (!mutableState.value.canStartModelMutation) return
+        if (!mutableState.value.canLoadPiper) return
         mutableState.update {
             it.copy(
                 piperBusy = true,
@@ -1016,10 +1016,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun startRecommendedPiperSetup() {
         val current = mutableState.value
-        if (
-            !current.canStartModelMutation ||
-            !current.piperAarPresent
-        ) {
+        if (!current.canPreparePiper) {
             return
         }
         mutableState.update {

@@ -456,14 +456,14 @@ private fun ModelSetupStep(
 private fun VoiceSetupStep(state: MainUiState, onPrepareRecommendedPiper: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         StepHeading(LucideR.drawable.lucide_ic_volume_2, "ｽﾀｯｸﾁｬﾝの声", PiperAssetLinks.RECOMMENDED_MODEL_NAME)
-        StatusRow("音声ランタイム", if (state.piperAarPresent) "利用可能" else "利用できません")
+        StatusRow("音声ランタイム", if (state.selectedPiperRuntimeAvailable) "利用可能" else "利用できません")
         Text("ダウンロード 約72MB・保存領域 約180MB", style = MaterialTheme.typography.bodyMedium)
         ModelProgressLine("音声", state.piperProgress)
         Button(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),
-            enabled = state.piperAarPresent && state.canStartModelMutation,
+            enabled = state.canPreparePiper,
             onClick = onPrepareRecommendedPiper,
         ) {
             LucideIcon(LucideR.drawable.lucide_ic_download, null)
@@ -759,7 +759,7 @@ private fun SettingsScreen(
                     ModelProgressLine("Piper Plus", state.piperProgress)
                     OutlinedButton(
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = state.piperAarPresent && state.canStartModelMutation,
+                        enabled = state.canPreparePiper,
                         onClick = onPrepareRecommendedPiper,
                     ) { Text("推奨音声を再準備") }
                     TextButton(onClick = { showAdvancedVoice = !showAdvancedVoice }) {
@@ -950,8 +950,7 @@ private fun PiperManualSettings(
         }
         Button(
             modifier = Modifier.fillMaxWidth(),
-            enabled = state.piperAarPresent && state.piperModelPresent && state.piperConfigPresent &&
-                state.piperDictionaryPresent && state.canStartModelMutation,
+            enabled = state.canLoadPiper,
             onClick = onLoadPiper,
         ) { Text("取り込んだ音声を使う") }
     }
