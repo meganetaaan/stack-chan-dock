@@ -1,0 +1,11 @@
+{
+  "source": "ayutaz/sanoTTS-jp",
+  "revision": "3eb73a91acdb8d4bc0cc10c3bc4e670555ce20bc",
+  "abi": "arm64-v8a",
+  "min_sdk": 26,
+  "w8a8": true,
+  "cpu_threads": 1,
+  "gpu": false,
+  "bytes": 355824,
+  "sha256": "8840491af4ac8d84282496bdfdc01e39ee9c0e83f650561250aeaa623fb2d493"
+}

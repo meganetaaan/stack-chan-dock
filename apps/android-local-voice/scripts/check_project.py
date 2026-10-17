@@ -74,7 +74,8 @@ for shared_path in [
 manifest_path = root / "app/src/main/AndroidManifest.xml"
 manifest = manifest_path.read_text(encoding="utf-8")
 ET.parse(manifest_path)
-assert "android.permission.RECORD_AUDIO" not in manifest
+assert "android.permission.RECORD_AUDIO" in manifest
+assert 'android:name="android.hardware.microphone" android:required="false"' in manifest
 assert "android.hardware.usb.host" in manifest
 assert "android.hardware.usb.action.USB_DEVICE_ATTACHED" in manifest
 assert "StackChanApplication" in manifest

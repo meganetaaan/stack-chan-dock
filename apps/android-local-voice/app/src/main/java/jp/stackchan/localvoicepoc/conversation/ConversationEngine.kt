@@ -37,8 +37,8 @@ import java.util.ArrayDeque
 import java.util.concurrent.atomic.AtomicBoolean
 
 class ConversationEngine(
-    private val audioSource: PcmAudioSource,
-    private val audioSink: PcmAudioSink,
+    @Volatile private var audioSource: PcmAudioSource,
+    @Volatile private var audioSink: PcmAudioSink,
     private val synthesizer: SpeechSynthesizer,
     private val speechRecognizer: LocalSpeechRecognizer,
     private val languageModel: LocalLanguageModel,
@@ -59,12 +59,21 @@ class ConversationEngine(
     @Volatile private var pushToTalkJob: Job? = null
     @Volatile private var pushToTalkBuffer: ByteArrayOutputStream? = null
 
+    private val processingPushToTalk = AtomicBoolean(false)
+
+    suspend fun switchAudio(source: PcmAudioSource, sink: PcmAudioSink) {
+        stop()
+        check(!closeRequested.get())
+        audioSource = source
+        audioSink = sink
+    }
+
     fun startAutomatic() {
         check(!closeRequested.get()) { "ConversationEngineは終了済みです" }
         check(sessionJob?.isActive != true) { "A conversation session is already running" }
         check(pushToTalkJob?.isActive != true) { "Push-to-talk recording is already running" }
-        check(synthesizer.isLoaded) { "Piper Plus is not loaded" }
-        check(languageModel.isLoaded) { "LLM is not loaded" }
+        check(synthesizer.isLoaded) { "音声の準備ができていません" }
+        check(languageModel.isLoaded) { "会話モデルの準備ができていません" }
 
         sessionJob = scope.launch {
             try {
@@ -83,9 +92,9 @@ class ConversationEngine(
                 audioSource.stop()
                 withContext(NonCancellable) {
                     audioSink.abort()
+                    sessionJob = null
                     emitPhase(ConversationPhase.IDLE)
                 }
-                sessionJob = null
             }
         }
     }
@@ -94,8 +103,8 @@ class ConversationEngine(
         check(!closeRequested.get()) { "ConversationEngineは終了済みです" }
         check(sessionJob?.isActive != true) { "Automatic conversation is running" }
         check(pushToTalkJob?.isActive != true) { "Push-to-talk recording is already running" }
-        check(synthesizer.isLoaded) { "Piper Plus is not loaded" }
-        check(languageModel.isLoaded) { "LLM is not loaded" }
+        check(synthesizer.isLoaded) { "音声の準備ができていません" }
+        check(languageModel.isLoaded) { "会話モデルの準備ができていません" }
 
         val buffer = ByteArrayOutputStream()
         pushToTalkBuffer = buffer
@@ -108,6 +117,7 @@ class ConversationEngine(
                         started = true
                         emitPhase(ConversationPhase.RECORDING)
                     }
+                    check(buffer.size().toLong() + chunk.size <= audioSource.sampleRate * audioSource.bytesPerSample * 30L) { "録音は30秒以内にしてください" }
                     buffer.write(chunk)
                     mutableEvents.tryEmit(ConversationEvent.AudioLevel(Pcm.rms16Le(chunk)))
                 }
@@ -119,10 +129,10 @@ class ConversationEngine(
                 )
             } finally {
                 audioSource.stop()
-                withContext(NonCancellable) {
-                    emitPhase(ConversationPhase.IDLE)
-                }
                 pushToTalkJob = null
+                withContext(NonCancellable) {
+                    if (!processingPushToTalk.get()) emitPhase(ConversationPhase.IDLE)
+                }
             }
         }
     }
@@ -130,6 +140,7 @@ class ConversationEngine(
     fun stopPushToTalkAndProcess() {
         check(!closeRequested.get()) { "ConversationEngineは終了済みです" }
         val recordingJob = pushToTalkJob ?: return
+        if (!processingPushToTalk.compareAndSet(false, true)) return
         audioSource.stop()
 
         sessionJob = scope.launch {
@@ -138,6 +149,8 @@ class ConversationEngine(
             pushToTalkBuffer = null
             if (audio.size < audioSource.sampleRate * audioSource.bytesPerSample / 4) {
                 mutableEvents.emit(ConversationEvent.Failure("録音が短すぎます。"))
+                processingPushToTalk.set(false)
+                sessionJob = null
                 emitPhase(ConversationPhase.IDLE)
                 return@launch
             }
@@ -150,6 +163,8 @@ class ConversationEngine(
                     ConversationEvent.Failure(error.message ?: error::class.java.simpleName, error),
                 )
             } finally {
+                processingPushToTalk.set(false)
+                sessionJob = null
                 emitPhase(ConversationPhase.IDLE)
             }
         }
@@ -166,10 +181,11 @@ class ConversationEngine(
         audioSink.abort()
         activePushToTalk?.join()
         activeSession?.join()
-        emitPhase(ConversationPhase.IDLE)
         pushToTalkJob = null
         sessionJob = null
         pushToTalkBuffer = null
+        processingPushToTalk.set(false)
+        emitPhase(ConversationPhase.IDLE)
     }
 
     private suspend fun captureAutomaticUtterance(): ByteArray {

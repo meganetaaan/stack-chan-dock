@@ -1,5 +1,15 @@
 # ｽﾀｯｸﾁｬﾝ Android Local Voice Dock App
 
+Piper Plus 1.13、Piper Plus 2.0.1、VOICEVOX:ずんだもん、sanoTTS-jp、Pocket TTS日本語を設定から選べます。接続したDockとスマホ単体の会話、端末内の録音・声の作成、Pocket日本語の標準10音声に対応します。
+
+- [統合内容・ビルド前提・検証範囲](docs/ANDROID_INTEGRATION.md)
+- [スマホ単体の会話](docs/PHONE_MODE.md)
+- [声の録音](docs/REFERENCE_RECORDING.md)・[保存録音の削除](docs/RECORDING_DELETION.md)
+- [Pocketの準備](docs/POCKET.md)・[本人の参照音声](docs/POCKET_REFERENCE_VOICES.md)・[標準10音声](docs/POCKET_PRESETS.md)
+- [Piperの再ビルド](docs/PIPER_REBUILD.md)・[Piper 2](docs/PIPER2_EVALUATION.md)・[VOICEVOX](docs/VOICEVOX.md)・[sanoTTS](docs/SANO.md)
+
+モデル・辞書・録音・話者状態はリポジトリに同梱しません。ネイティブAAR/SOもGit管理外です。[依存物の配置](app/libs/README.md)を済ませてからビルドします。評価アプリの継続更新には `-PsanoEvaluation=true` を使います（`jp.stackchan.localvoicepoc.sanoeval`、versionCode 9）。通常ビルドは `jp.stackchan.localvoicepoc` で、別パッケージです。
+
 Android端末をｽﾀｯｸﾁｬﾝの頭脳として、完全ローカルの日本語音声会話を動かすdock appです。
 
 ```text
@@ -180,7 +190,7 @@ LLMの取得情報は`model/GemmaModelManifest.kt`、ASRの取得情報は`model
 | LLM | Gemma 4 E2B/E4B（LiteRT-LM、2,048 tokens）またはAgents A1 4B Q4_K_M（llama.cpp、実機上限2,048 tokens） |
 | STT | sherpa-onnx Whisper Small multilingual、`language=ja`、4 CPU threads |
 | VAD | android-vad WebRTC 2.0.10、20 ms frames |
-| TTS | 自動取得したつくよみちゃん音声、または端末から取り込んだPiper Plus日本語モデル |
+| TTS | Piper Plus 1.13 / 2.0.1、VOICEVOX、sanoTTS-jp、Pocket TTS日本語（各モデルは別途準備） |
 
 LLMは`.litertlm`形式をLiteRT-LM、Agents A1のGGUFをRunAnywhere llama.cppで実行し、会話制御からは`LocalLanguageModel`として扱います。
 Agents A1のツール呼び出しはモデルアダプター内で処理し、ツールタグや思考タグをUIと音声合成へ渡しません。
@@ -253,8 +263,20 @@ adb pull /sdcard/Android/data/jp.stackchan.localvoicepoc/files/voice-diagnostics
 
 ## PoCの境界
 
-この段階ではCoreS3のマイクとスピーカーを使う半二重会話です。
+CoreS3のマイクとスピーカー、または明示選択したスマホのマイクとスピーカーを使う半二重会話です。
 USB発話の口パクと吹き出しは実装していますが、感情表現、サーボ同期、AEC、再生中の割り込み発話には対応していません。
 基本的なUSB音声対話は実機で確認済みです。
 80 ms送信と500 ms prebufferによる連続再生は、音量0の実機診断で8 kHz、16 kHz、24 kHzともstarvation 0回を確認しています。
 Android実機では、変更後の可聴音、口パク、吹き出し、USB抜き差し、各Piperモデルのsample rateを再確認する必要があります。
+
+## Android standalone conversation
+
+The conversation screen now offers explicit smartphone-only or connected-device audio. See [Android standalone conversation and validation limits](docs/PHONE_MODE.md). The existing app ID, models, selected voice and USB mode are preserved.
+
+## Pocket TTS Japanese
+
+Pocket Japanese is also available as a fifth selectable engine in the private noncommercial evaluation APK. See [Pocket setup, model pins, lifecycle and validation limits](docs/POCKET.md). Existing engines, model files, settings and the evaluation application ID are retained.
+
+## sanoTTS
+
+Piper PlusとVOICEVOXに加えてsanoTTS-jpを選択できます。公式モデルと辞書の準備、利用条件、CPU専用JNIのビルド、検証範囲は [docs/SANO.md](docs/SANO.md) を参照してください。

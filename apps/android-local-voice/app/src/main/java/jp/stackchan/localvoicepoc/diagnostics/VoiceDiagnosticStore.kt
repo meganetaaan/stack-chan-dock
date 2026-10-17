@@ -3,8 +3,6 @@ package jp.stackchan.localvoicepoc.diagnostics
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import java.nio.file.AtomicMoveNotSupportedException
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
@@ -123,24 +121,8 @@ class RecognitionCaptureStore(
         writeAtomically(capture.metadataFile, DiagnosticJson.encode(metadata).toByteArray(Charsets.UTF_8))
     }
 
-    private fun wavBytes(pcm16Le: ByteArray, sampleRate: Int): ByteArray {
-        val result = ByteBuffer.allocate(WAV_HEADER_BYTES + pcm16Le.size).order(ByteOrder.LITTLE_ENDIAN)
-        result.put("RIFF".toByteArray(Charsets.US_ASCII))
-        result.putInt(36 + pcm16Le.size)
-        result.put("WAVE".toByteArray(Charsets.US_ASCII))
-        result.put("fmt ".toByteArray(Charsets.US_ASCII))
-        result.putInt(16)
-        result.putShort(1.toShort())
-        result.putShort(1.toShort())
-        result.putInt(sampleRate)
-        result.putInt(sampleRate * PCM_BLOCK_ALIGN)
-        result.putShort(PCM_BLOCK_ALIGN.toShort())
-        result.putShort(16.toShort())
-        result.put("data".toByteArray(Charsets.US_ASCII))
-        result.putInt(pcm16Le.size)
-        result.put(pcm16Le)
-        return result.array()
-    }
+    private fun wavBytes(pcm16Le: ByteArray, sampleRate: Int): ByteArray =
+        jp.stackchan.localvoicepoc.audio.PcmWav.encode(pcm16Le, sampleRate)
 
     private fun uniqueId(prefix: String): String {
         var suffix = 0

@@ -1,0 +1,20 @@
+This model was distilled from a piper-plus teacher model.
+sanoTTS-jp — https://github.com/ayutaz/sanoTTS-jp
+
+つくよみちゃんコーパス
+  本ソフトウェアの音声合成には、フリー素材キャラクター「つくよみちゃん」
+  （© 夢前黎）が無料公開している音声データを使用しています。
+  https://tyc.rei-yumesaki.net/material/corpus/
+
+教師 base の学習に使用した音声コーパス
+（⚠️ 改変あり: いずれも音声合成モデルの学習に使用しています）:
+  - LibriTTS-R (en) — Koizumi et al., 2023 — CC BY 4.0
+      素材:       https://www.openslr.org/141/
+      ライセンス: https://creativecommons.org/licenses/by/4.0/
+  - CML-TTS (es / fr / pt) — freds0 et al. — CC BY 4.0
+      素材:       https://github.com/freds0/CML-TTS-Dataset
+      ライセンス: https://creativecommons.org/licenses/by/4.0/
+  - AISHELL-3 (zh) — Shi et al., 2020 — Apache-2.0
+      素材:       https://www.aishelltech.com/aishell_3
+      ライセンス: https://www.apache.org/licenses/LICENSE-2.0
+  上記 3 素材は現状のまま (AS IS) 提供され、明示・黙示を問わず保証はありません。

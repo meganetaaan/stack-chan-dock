@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "engine": "pocket-ja-reference-encoder-v1",
+  "sample_rate": 24000,
+  "max_input_samples": 120000,
+  "weights_sha256": "848b60fcfbcd3f8468e0c5419b2e1cb331673df59502f3cc430509a3a3294cb7",
+  "compatible_flow_main_sha256": "d7e31014100474bb24d375f5f006d4dfc34b41b88c88e71dc2ea4de7c14d5522",
+  "exporter_pin": "e801e7d6c2692121a39e80ae525cb5265174a495",
+  "files": [
+    {
+      "name": "mimi_encoder.onnx",
+      "bytes": 39261982,
+      "sha256": "5a6927d66a3585ad220f446ef8d4429948a17f10257661304cf42d61653865f6"
+    },
+    {
+      "name": "bos-before-voice.f32",
+      "bytes": 4096,
+      "sha256": "ec11dd25e9e0c647bd11a5708d1d8de723a93dcfc44198b0b642467380e4af9c"
+    }
+  ],
+  "license": "CC BY-NC 4.0",
+  "author": "takuma104 / Kyutai",
+  "source": "https://huggingface.co/takuma104/pocket-tts-ja",
+  "code_license": "MIT: Pocket TTS and PocketTTS.cpp exporter",
+  "changes": "Existing Japanese checkpoint encoded to FP32 ONNX with stock 3.3.0 code; Japanese BOS extracted without retraining.",
+  "scope": "Private noncommercial evaluation; same model conditions as existing Pocket installation; no user voice data."
+}

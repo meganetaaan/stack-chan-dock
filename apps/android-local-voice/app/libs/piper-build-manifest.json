@@ -1,0 +1,34 @@
+{
+  "source": "https://github.com/ayutaz/piper-plus/tree/v1.13.0",
+  "commit": "7d3aa34e7acf5f8c91d6ad280aefbb369905db2a",
+  "native_toolchain": "NDK r30 Clang 21, API24, arm64-v8a, c++_shared, 16KiB max page",
+  "kotlin_toolchain": "Kotlin2.4.0 JVM11 against Android37.0 and coroutines1.11.0",
+  "local_adjustments": [
+    "CMake removes desktop SOVERSION for Android .so extraction",
+    "Existing isolate_piper_onnx.py renames only Piper ORT SONAME to libonnxrtpiper.so",
+    "Official NDK r30 libc++ and its original toolchain NOTICE are bundled; select_libcxx.py selects it after installation",
+    "No synthesis/G2P source changes"
+  ],
+  "aar_sha256": "9cfe4064bd9eecc61c21388f2c0d80ca16a1da2ef56a849593d7a91136792f85",
+  "bytes": 9827976,
+  "upstream_original_aar_sha256": "b43d4aeb46af952db7205106dfed68a51bab19fc8343370479a467caf9e3b688",
+  "original_artifact_recovered": false,
+  "dependencies": [
+    {
+      "name": "onnxruntime-android-1.20.0.aar",
+      "url": "https://repo.maven.apache.org/maven2/com/microsoft/onnxruntime/onnxruntime-android/1.20.0/onnxruntime-android-1.20.0.aar",
+      "sha256": "07a8f71ef890afed8c6087a56220e6d558a492804276ee2dd7cb7f6262242027",
+      "bytes": 27867924
+    },
+    {
+      "name": "onnxruntime-linux-x64-1.20.0.tgz",
+      "url": "https://github.com/microsoft/onnxruntime/releases/download/v1.20.0/onnxruntime-linux-x64-1.20.0.tgz",
+      "sha256": "aa70d48b22e264b82e83f63245b51ddc9a47ae4a3a66903efaff1ba68b7b5930",
+      "bytes": 6184676
+    }
+  ],
+  "limitations": [
+    "Locally rebuilt from official source; not the prior production AAR",
+    "No Android device load or synthesis executed"
+  ]
+}
