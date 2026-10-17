@@ -1,6 +1,6 @@
 """Build only the pinned CPU1/W8A8 sano JNI, using an already installed Android NDK."""
 from pathlib import Path
-import argparse, hashlib, json, subprocess, os
+import argparse, hashlib, json, subprocess, platform
 
 app = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser()
@@ -12,9 +12,13 @@ manifest = json.loads((source/'SOURCE.json').read_text())
 assert manifest['revision'] == '3eb73a91acdb8d4bc0cc10c3bc4e670555ce20bc'
 for name, expected in manifest['files'].items():
     assert hashlib.sha256((source/name).read_bytes()).hexdigest() == expected, name
-host = 'windows-x86_64' if os.name == 'nt' else 'linux-x86_64'
+host_tags = {'Windows': 'windows-x86_64', 'Linux': 'linux-x86_64', 'Darwin': 'darwin-x86_64'}
+system = platform.system()
+if system not in host_tags:
+    raise SystemExit(f'Unsupported NDK build host: {system}')
+host = host_tags[system]
 toolchain = args.ndk/'toolchains/llvm/prebuilt'/host
-clang = toolchain/'bin'/('clang.exe' if os.name == 'nt' else 'clang')
+clang = toolchain/'bin'/('clang.exe' if system == 'Windows' else 'clang')
 out = app/'app/src/main/jniLibs/arm64-v8a/libstackchan_sano.so'
 out.parent.mkdir(parents=True, exist_ok=True)
 sources = [source/name for name in ['saanotts.c','saanotts_stream.c','saanotts_int8.c','fft.c','g2p.c','jdict.c','accent.c','njd_rules.c','label_ids.c','saan_kanji.c']]
