@@ -1,0 +1,3 @@
+apps/android-local-voice/app/src/main/cpp/sano/** -text
+apps/android-local-voice/app/src/main/assets/pocket-model-manifest.json -text
+apps/android-local-voice/app/src/main/assets/pocket-encoder-manifest.json -text

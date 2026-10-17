@@ -43,6 +43,32 @@ enum class SetupStep {
 }
 
 data class MainUiState(
+    val pocketVoices: jp.stackchan.localvoicepoc.pocket.PocketVoiceUiState = jp.stackchan.localvoicepoc.pocket.PocketVoiceUiState(),
+    val referenceRecording: jp.stackchan.localvoicepoc.recording.ReferenceRecordingState = jp.stackchan.localvoicepoc.recording.ReferenceRecordingState(),
+    val audioMode: jp.stackchan.localvoicepoc.audio.ConversationAudioMode = jp.stackchan.localvoicepoc.audio.ConversationAudioMode.DOCK,
+    val audioTransition: Boolean = false,
+    val microphoneGranted: Boolean = false,
+    val microphoneDenied: Boolean = false,
+    val ttsBackend: jp.stackchan.localvoicepoc.voicevox.TtsBackend = jp.stackchan.localvoicepoc.voicevox.TtsBackend.PIPER,
+    val piper2Available: Boolean = false,
+    val pocketAvailable: Boolean = false,
+    val pocketLoaded: Boolean = false,
+    val pocketBusy: Boolean = false,
+    val pocketProgress: ComponentProgress = ComponentProgress(stage = "モデルZIPを取り込んでください"),
+    val pocketTermsConfirmationRequired: Boolean = false,
+    val sanoAvailable: Boolean = false,
+    val sanoLoaded: Boolean = false,
+    val sanoBusy: Boolean = false,
+    val sanoProgress: ComponentProgress = ComponentProgress(),
+    val sanoTermsConfirmationRequired: Boolean = false,
+    val voicevoxAvailable: Boolean = false,
+    val voicevoxLoaded: Boolean = false,
+    val voicevoxBusy: Boolean = false,
+    val voicevoxProgress: ComponentProgress = ComponentProgress(),
+    val voicevoxTermsConfirmationRequired: Boolean = false,
+    val voicevoxDiagnosticReport: String = "",
+    val voicevoxDiagnosticRunning: Boolean = false,
+    val ttsPreviewRunning: Boolean = false,
     val startupStatus: AppStartupStatus = AppStartupStatus.CHECKING,
     val startupMessage: String = "保存済みのデータを確認しています",
     val sdkStatus: SdkBootstrap.Status = SdkBootstrap.Status.Starting,
@@ -71,16 +97,44 @@ data class MainUiState(
     val error: String? = null,
 ) {
     val canStartModelMutation: Boolean
-        get() = phase == ConversationPhase.IDLE && !modelSetupRunning && !piperBusy
+        get() = !pocketVoices.busy && !referenceRecording.open && sdkStatus is SdkBootstrap.Status.Ready && phase == ConversationPhase.IDLE && !audioTransition && !modelSetupRunning && !piperBusy && !voicevoxBusy && !sanoBusy && !pocketBusy && !ttsPreviewRunning && !voicevoxDiagnosticRunning
+
+    val canManageReferenceVoices: Boolean
+        get() = referenceRecording.open && canChoosePocketVoices
+
+    val canChoosePocketVoices: Boolean
+        get() = !pocketVoices.busy && !audioTransition &&
+            (!referenceRecording.open || (referenceRecording.phase == jp.stackchan.localvoicepoc.recording.RecordingPhase.IDLE && referenceRecording.draft == null && referenceRecording.deletePrompt == null)) &&
+            phase == ConversationPhase.IDLE && ttsBackend == jp.stackchan.localvoicepoc.voicevox.TtsBackend.POCKET && pocketLoaded &&
+            !modelSetupRunning && !piperBusy && !voicevoxBusy && !sanoBusy && !pocketBusy && !ttsPreviewRunning && !voicevoxDiagnosticRunning
+
+    val voiceReady: Boolean
+        get() = when (ttsBackend) {
+            jp.stackchan.localvoicepoc.voicevox.TtsBackend.PIPER, jp.stackchan.localvoicepoc.voicevox.TtsBackend.PIPER2 -> piperLoaded
+            jp.stackchan.localvoicepoc.voicevox.TtsBackend.VOICEVOX -> voicevoxLoaded
+            jp.stackchan.localvoicepoc.voicevox.TtsBackend.SANO -> sanoLoaded
+            jp.stackchan.localvoicepoc.voicevox.TtsBackend.POCKET -> pocketLoaded
+        }
+
+    val assetsReady: Boolean
+        get() = sdkStatus is SdkBootstrap.Status.Ready && modelsReady && voiceReady && !modelSetupRunning && !piperBusy && !voicevoxBusy && !sanoBusy && !pocketBusy
+
+    val canChangeAudioMode: Boolean
+        get() = !pocketVoices.busy && !referenceRecording.open && !audioTransition && !modelSetupRunning && !piperBusy && !voicevoxBusy && !sanoBusy && !pocketBusy && !voicevoxDiagnosticRunning
+
+    val canRequestMicrophone: Boolean
+        get() = !pocketVoices.busy && !referenceRecording.open && audioMode == jp.stackchan.localvoicepoc.audio.ConversationAudioMode.PHONE && assetsReady && !microphoneGranted && !audioTransition && !ttsPreviewRunning
 
     val pipelineReady: Boolean
-        get() = sdkStatus is SdkBootstrap.Status.Ready && modelsReady && piperLoaded &&
-            usbStatus == UsbConnectionStatus.READY
+        get() = !pocketVoices.busy && !referenceRecording.open && assetsReady && !audioTransition && !ttsPreviewRunning && !voicevoxDiagnosticRunning && when (audioMode) {
+            jp.stackchan.localvoicepoc.audio.ConversationAudioMode.PHONE -> microphoneGranted
+            jp.stackchan.localvoicepoc.audio.ConversationAudioMode.DOCK -> usbStatus == UsbConnectionStatus.READY
+        }
 
     val setupStep: SetupStep
         get() = when {
             !modelsReady -> SetupStep.MODEL
-            !piperLoaded -> SetupStep.VOICE
+            !voiceReady -> SetupStep.VOICE
             else -> SetupStep.DEVICE
         }
 }

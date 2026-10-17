@@ -1,0 +1,38 @@
+{
+  "source_tag": "v2.0.1",
+  "commit": "54c6efc0495f1ecae9d91f9935bf8319be233ac2",
+  "official_archive_sha256": "c5814da74a12826c73efb384d3e6e9435611326755ee965d7789ab5097483fe8",
+  "aar_sha256": "95e952d8f666cc56b2044feda47ae87a2fffb43596921de6099f65a2d16f9e70",
+  "bytes": 7701858,
+  "namespace": "com.piperplus2",
+  "provider": "cpu",
+  "num_threads": 0,
+  "options": {
+    "speaker_id": 0,
+    "noise_scale": 0.667,
+    "length_scale": 1.0,
+    "noise_w": 0.8,
+    "sentence_silence_sec": 0.2
+  },
+  "changes": [
+    "namespace and native/ORT SONAME isolation",
+    "legacy synthesis parameters fixed for comparison",
+    "finite/OOM/bounded PCM guard"
+  ],
+  "synthesis_core_from_official_release": true,
+  "new_voice_or_encoder": false,
+  "native": {
+    "libonnxrpiper2.so": {
+      "bytes": 17571152,
+      "sha256": "a747e2e277ff9cc6abebdd5a7c7e7da8e7326a7eab44f4c4c15aab8ea608c703"
+    },
+    "libpiper2plus.so": {
+      "bytes": 3241624,
+      "sha256": "efe1b5398376a92f200146cc9570648836fc424caeb5937d6aa5957423b0abd5"
+    },
+    "libpiper2plus_jni.so": {
+      "bytes": 37504,
+      "sha256": "04ba41ade888100cc1e2951a223ae5a406a3d2de82d56cfc65a69d3172da5462"
+    }
+  }
+}

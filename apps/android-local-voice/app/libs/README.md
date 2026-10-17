@@ -1,27 +1,26 @@
-# Piper Plus Android AAR
+# Native build dependencies
 
-このディレクトリには、次の名前でAARを配置します。
+These code dependencies are excluded from Git. Models, dictionaries, recordings and voice-state caches are provisioned separately and must not be copied into this directory. A clean clone requires manual native dependency preparation before compiling; Pocket directly imports the isolated Java API, so an absent Pocket AAR cannot be treated as a working optional build.
 
-```text
-piper-plus-release.aar
-```
+| App-relative destination | Preparation / provenance |
+|---|---|
+| app/libs/piper-plus-release.aar | Pinned locally rebuilt v1.13.0; [rebuild record](../../docs/PIPER_REBUILD.md), piper-build-manifest.json and the .aar.sha256 file |
+| app/libs/piper-plus-2-isolated.aar | Pinned v2.0.1 official ARM64 core/ORT plus namespace-isolated Kotlin/JNI; [record](../../docs/PIPER2_EVALUATION.md), piper2-build-manifest.json, reviewed JNI/header source under src/main/cpp/piper2 |
+| app/libs/voicevoxcore-android-0.17.0.aar | Official Core archive; run scripts/install_voicevox.py from the app root; also installs Core/ORT SOs |
+| app/libs/onnx-irodori-isolated.aar | Accepted isolated ORT 1.30.0 CPU package; pocket-source-manifest.json and [source/isolation record](../src/main/cpp/pocket/SOURCE.md) |
+| app/src/main/jniLibs/arm64-v8a/libirte_pocket.so | Accepted SentencePiece JNI; source and upstream reference recipe in src/main/cpp/pocket |
+| app/src/main/jniLibs/arm64-v8a/libstackchan_sano.so | Build vendored pinned source with scripts/build_sano.py and an existing NDK; [instructions](../../docs/SANO.md) |
+| app/src/main/jniLibs/arm64-v8a/libc++_shared.so | Canonical official NDK r30 runtime selected by scripts/select_libcxx.py; libcxx-artifact.json |
 
-現在のローカル成果物はPiper Plus v1.13.0です。
+Use the already accepted local evaluation build as the source for the custom AARs/tokenizer SO. Their preparation is not automated by the Gradle build or hosted as public binary artifacts by this repository. The corresponding source revisions, transformations and reference build recipes are recorded above; another native build can have different bytes and must receive a new compatibility audit rather than blindly replacing these pins.
 
-- タグ: `v1.13.0`
-- ソースコミット: `7d3aa34e7acf5f8c91d6ad280aefbb369905db2a`
-- native artifact: GitHub Actions run `27554313822`の`libpiper_plus-android-arm64-v8a`
-- native artifact archive SHA-256: `9ae93009e115137e034d5ee76fe71380036d9b6c0044b554060100754b9f30c3`
-- 分離前AAR SHA-256: `5a578d8ba1a53da3f85febd08353be49f8a7d166bd7fcd07e795d9c965b71daa`
-- 配置済みAAR SHA-256: `b43d4aeb46af952db7205106dfed68a51bab19fc8343370479a467caf9e3b688`
+Accepted artifact SHA-256 values:
 
-公式リリースにはAndroid AARがないため、AARはタグのAndroidラッパーからローカルビルドしました。
-JNIラッパーはC++ランタイムを静的リンクし、`-Wl,-z,max-page-size=16384`を指定しています。
-これにより、AARはRunAnywhereの`libc++_shared.so`と衝突せず、16 KiBページサイズに対応します。
-Piper Plus 1.20.0とRunAnywhere 1.17.1のONNX Runtimeは、`OrtGetApiBase`に異なるシンボル版を使うため相互置換できません。
-インストールスクリプトはPiper側を`libonnxrtpiper.so`へ改名し、`libpiper_plus.so`の依存名とランタイムのSONAMEも同時に変更します。
-置換前後の名前は同じバイト長なので、ELFセグメント配置と16 KiBアラインメントは変わりません。
+- `piper-plus-release.aar`: `9cfe4064bd9eecc61c21388f2c0d80ca16a1da2ef56a849593d7a91136792f85`
+- `piper-plus-2-isolated.aar`: `95e952d8f666cc56b2044feda47ae87a2fffb43596921de6099f65a2d16f9e70`
+- `onnx-irodori-isolated.aar`: `4dd3a4e5e9d4284d5c6a8438166ab5e0ad144260907dacb71193a54ad6fa01eb`
+- `libirte_pocket.so`: `71acdf79fc81fe0d806eb9af1de9b198edf9830f2d9da6fab7a5a8352c13e1e4`
 
-AAR本体は`.gitignore`の対象です。
-`piper-plus-release.aar.sha256`は配置したバイナリの整合性確認に使います。
-アプリは`com.piperplus.PiperPlus`をリフレクションで読み込むため、AARがなくてもコンパイルできますが、日本語TTSは利用できません。
+Keep the unmodified notice assets with these components. In particular, ONNX runtimes use different Java/JNI namespaces and SONAMEs; replacing the isolated packages with a stock Maven AAR can bind the wrong engine at runtime. The canonical libc++ selection must cover every native import, not merely satisfy Gradle's pickFirst. See the APK validation instructions in docs/VOICEVOX.md and scripts/check_tts_apk.py.
+
+After supplying the dependencies, run the build and validation commands in [the integration record](../../docs/ANDROID_INTEGRATION.md). No SDK/NDK download, license acceptance, signing-key retrieval, model acquisition or device installation is performed automatically by this dependency preparation guide.

@@ -5,13 +5,9 @@ import jp.stackchan.localvoicepoc.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Modifier
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Runtime adapter for the optional Piper Plus AAR.
@@ -19,10 +15,26 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Reflection is deliberate: it keeps this PoC buildable before the locally-built AAR is
  * copied into app/libs, while retaining the real Piper Plus API at runtime.
  */
-class PiperPlusReflectionSynthesizer(context: Context) : SpeechSynthesizer {
+class PiperPlusReflectionSynthesizer(
+    context: Context,
+    private val runtimeClassName: String = "com.piperplus.PiperPlus",
+    private val aarPresent: Boolean = BuildConfig.PIPER_PLUS_AAR_PRESENT,
+) : SpeechSynthesizer {
     private val appContext = context.applicationContext
     private val lock = Any()
-    private val cancelled = AtomicBoolean(false)
+    private val pcm = BlockingPiperFlow { normalized ->
+        synchronized(lock) {
+            val localEngine = engine ?: error("Piper Plus is not loaded")
+            val clazz = engineClass ?: error("Piper Plus class is unavailable")
+            try {
+                val result = clazz.getMethod("synthesize", String::class.java, Int::class.javaPrimitiveType!!)
+                    .invoke(localEngine, normalized, 0) as ShortArray
+                SpeechSynthesizer.AudioChunk(modelSampleRate, result)
+            } catch (error: InvocationTargetException) {
+                throw error.targetException ?: error
+            }
+        }
+    }
 
     @Volatile private var engine: Any? = null
     @Volatile private var engineClass: Class<*>? = null
@@ -31,10 +43,10 @@ class PiperPlusReflectionSynthesizer(context: Context) : SpeechSynthesizer {
     override val isLoaded: Boolean get() = engine != null
 
     val runtimeAvailable: Boolean
-        get() = BuildConfig.PIPER_PLUS_AAR_PRESENT &&
-            runCatching { Class.forName(CLASS_NAME) }.isSuccess
+        get() = aarPresent &&
+            runCatching { Class.forName(runtimeClassName) }.isSuccess
 
-    override suspend fun load(installation: PiperInstallation) = withContext(Dispatchers.IO) {
+    suspend fun load(installation: PiperInstallation) = withContext(Dispatchers.IO) {
         require(runtimeAvailable) {
             "Piper Plus AAR is missing. Copy piper-plus-release.aar to app/libs and rebuild."
         }
@@ -42,52 +54,33 @@ class PiperPlusReflectionSynthesizer(context: Context) : SpeechSynthesizer {
             "Piper model, JSON config, and OpenJTalk dictionary must all be imported first."
         }
 
+        val coroutine = currentCoroutineContext()
+        pcm.cancel()
         synchronized(lock) {
             closeLocked()
-            val clazz = Class.forName(CLASS_NAME)
-            val created = invokeCreate(clazz, installation)
-            val sampleRate = clazz.getMethod("getSampleRate").invoke(created) as Int
-            require(sampleRate > 0) { "Piper Plus returned an invalid sample rate" }
-            engineClass = clazz
-            engine = created
-            modelSampleRate = sampleRate
-            cancelled.set(false)
-        }
-    }
-
-    override fun synthesize(text: String): Flow<SpeechSynthesizer.AudioChunk> = flow {
-        val normalized = text.trim()
-        if (normalized.isEmpty()) return@flow
-        cancelled.set(false)
-
-        currentCoroutineContext().ensureActive()
-        if (cancelled.get()) return@flow
-
-        val result = synchronized(lock) {
-            val localEngine = engine ?: error("Piper Plus is not loaded")
-            val clazz = engineClass ?: error("Piper Plus class is unavailable")
+            val clazz = Class.forName(runtimeClassName)
+            val created = try { invokeCreate(clazz, installation) }
+                catch (error: InvocationTargetException) { throw error.targetException ?: error }
             try {
-                @Suppress("UNCHECKED_CAST")
-                clazz.getMethod("synthesize", String::class.java, Int::class.javaPrimitiveType!!)
-                    .invoke(localEngine, normalized, 0) as ShortArray
-            } catch (error: InvocationTargetException) {
-                throw error.targetException ?: error
+                val sampleRate = clazz.getMethod("getSampleRate").invoke(created) as Int
+                require(sampleRate > 0) { "Piper Plus returned an invalid sample rate" }
+                coroutine.ensureActive()
+                engineClass = clazz
+                engine = created
+                modelSampleRate = sampleRate
+            } catch (error: Throwable) {
+                runCatching { clazz.getMethod("close").invoke(created) }
+                throw if (error is InvocationTargetException) error.targetException ?: error else error
             }
-        }
 
-        currentCoroutineContext().ensureActive()
-        if (cancelled.get()) return@flow
-        check(result.isNotEmpty()) {
-            "Piper PlusがPCMを返しませんでした。OpenJTalk辞書を確認してください。"
         }
-        emit(SpeechSynthesizer.AudioChunk(modelSampleRate, result))
-    }.flowOn(Dispatchers.IO)
-
-    override fun cancel() {
-        cancelled.set(true)
     }
 
+    override fun synthesize(text: String) = pcm.synthesize(text)
+    fun synthesize(text: String, timing: jp.stackchan.localvoicepoc.voicevox.TtsTiming) = pcm.synthesize(text, timing)
+    override fun cancel() = pcm.cancel()
     override fun close() {
+        cancel()
         synchronized(lock) { closeLocked() }
     }
 
@@ -135,7 +128,4 @@ class PiperPlusReflectionSynthesizer(context: Context) : SpeechSynthesizer {
         modelSampleRate = 0
     }
 
-    private companion object {
-        const val CLASS_NAME = "com.piperplus.PiperPlus"
-    }
 }

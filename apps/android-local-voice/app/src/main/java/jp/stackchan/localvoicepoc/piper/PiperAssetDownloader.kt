@@ -130,6 +130,9 @@ internal class PiperAssetDownloader(private val directory: File) {
                             currentCoroutineContext().ensureActive()
                             val count = input.read(buffer)
                             if (count < 0) break
+                            check(total + count <= artifact.expectedBytes) {
+                                "${artifact.name}: download exceeds the pinned file size"
+                            }
                             output.write(buffer, 0, count)
                             total += count
                             val now = System.nanoTime()

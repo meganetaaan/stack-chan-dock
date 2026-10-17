@@ -1,0 +1,1776 @@
+{
+  "schema": 1,
+  "engine": "pocket_tts_ja_6l_ort_cpu",
+  "license": "CC BY-NC 4.0",
+  "author": "takuma104 / Kyutai",
+  "upstream_exporter_revision": "e801e7d6c2692121a39e80ae525cb5265174a495",
+  "config_revision": "562a82cba331499b75a050b7e200f4ee3241b9e9",
+  "weights_revision": "ce597c6d2efa5bac163079d6318591de9dbad67a",
+  "voice_revision": "119685fd7a51356429c6d25e37d570b423c17663",
+  "weights_sha256": "848b60fcfbcd3f8468e0c5419b2e1cb331673df59502f3cc430509a3a3294cb7",
+  "sample_rate": 24000,
+  "temperature": 0.3,
+  "lsd_steps": 1,
+  "precision": "Stock FP32 compute; FP32 KV cache; no INT8/FP16 conversion",
+  "voice": "female_03",
+  "voice_state": [
+    {
+      "input": "state_0",
+      "file": "voice_state_0.f32",
+      "shape": [
+        1,
+        1000,
+        16,
+        64
+      ],
+      "dtype": "float32"
+    },
+    {
+      "input": "state_1",
+      "file": "voice_state_1.f32",
+      "shape": [
+        1,
+        1000,
+        16,
+        64
+      ],
+      "dtype": "float32"
+    },
+    {
+      "input": "state_2",
+      "file": "voice_state_2.i64",
+      "shape": [
+        1
+      ],
+      "dtype": "int64"
+    },
+    {
+      "input": "state_3",
+      "file": "voice_state_3.f32",
+      "shape": [
+        1,
+        1000,
+        16,
+        64
+      ],
+      "dtype": "float32"
+    },
+    {
+      "input": "state_4",
+      "file": "voice_state_4.f32",
+      "shape": [
+        1,
+        1000,
+        16,
+        64
+      ],
+      "dtype": "float32"
+    },
+    {
+      "input": "state_5",
+      "file": "voice_state_5.i64",
+      "shape": [
+        1
+      ],
+      "dtype": "int64"
+    },
+    {
+      "input": "state_6",
+      "file": "voice_state_6.f32",
+      "shape": [
+        1,
+        1000,
+        16,
+        64
+      ],
+      "dtype": "float32"
+    },
+    {
+      "input": "state_7",
+      "file": "voice_state_7.f32",
+      "shape": [
+        1,
+        1000,
+        16,
+        64
+      ],
+      "dtype": "float32"
+    },
+    {
+      "input": "state_8",
+      "file": "voice_state_8.i64",
+      "shape": [
+        1
+      ],
+      "dtype": "int64"
+    },
+    {
+      "input": "state_9",
+      "file": "voice_state_9.f32",
+      "shape": [
+        1,
+        1000,
+        16,
+        64
+      ],
+      "dtype": "float32"
+    },
+    {
+      "input": "state_10",
+      "file": "voice_state_10.f32",
+      "shape": [
+        1,
+        1000,
+        16,
+        64
+      ],
+      "dtype": "float32"
+    },
+    {
+      "input": "state_11",
+      "file": "voice_state_11.i64",
+      "shape": [
+        1
+      ],
+      "dtype": "int64"
+    },
+    {
+      "input": "state_12",
+      "file": "voice_state_12.f32",
+      "shape": [
+        1,
+        1000,
+        16,
+        64
+      ],
+      "dtype": "float32"
+    },
+    {
+      "input": "state_13",
+      "file": "voice_state_13.f32",
+      "shape": [
+        1,
+        1000,
+        16,
+        64
+      ],
+      "dtype": "float32"
+    },
+    {
+      "input": "state_14",
+      "file": "voice_state_14.i64",
+      "shape": [
+        1
+      ],
+      "dtype": "int64"
+    },
+    {
+      "input": "state_15",
+      "file": "voice_state_15.f32",
+      "shape": [
+        1,
+        1000,
+        16,
+        64
+      ],
+      "dtype": "float32"
+    },
+    {
+      "input": "state_16",
+      "file": "voice_state_16.f32",
+      "shape": [
+        1,
+        1000,
+        16,
+        64
+      ],
+      "dtype": "float32"
+    },
+    {
+      "input": "state_17",
+      "file": "voice_state_17.i64",
+      "shape": [
+        1
+      ],
+      "dtype": "int64"
+    }
+  ],
+  "contracts": {
+    "text_conditioner.onnx": {
+      "inputs": [
+        {
+          "name": "token_ids",
+          "shape": [
+            1,
+            "text_len"
+          ],
+          "type": "tensor(int64)"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "embeddings",
+          "shape": [
+            1,
+            "text_len",
+            1024
+          ],
+          "type": "tensor(float)"
+        }
+      ]
+    },
+    "flow_lm_main.onnx": {
+      "inputs": [
+        {
+          "name": "sequence",
+          "shape": [
+            1,
+            "seq_len",
+            32
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "text_embeddings",
+          "shape": [
+            1,
+            "text_len",
+            1024
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_0",
+          "shape": [
+            1,
+            1000,
+            16,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_1",
+          "shape": [
+            1,
+            1000,
+            16,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_2",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        },
+        {
+          "name": "state_3",
+          "shape": [
+            1,
+            1000,
+            16,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_4",
+          "shape": [
+            1,
+            1000,
+            16,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_5",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        },
+        {
+          "name": "state_6",
+          "shape": [
+            1,
+            1000,
+            16,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_7",
+          "shape": [
+            1,
+            1000,
+            16,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_8",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        },
+        {
+          "name": "state_9",
+          "shape": [
+            1,
+            1000,
+            16,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_10",
+          "shape": [
+            1,
+            1000,
+            16,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_11",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        },
+        {
+          "name": "state_12",
+          "shape": [
+            1,
+            1000,
+            16,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_13",
+          "shape": [
+            1,
+            1000,
+            16,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_14",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        },
+        {
+          "name": "state_15",
+          "shape": [
+            1,
+            1000,
+            16,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_16",
+          "shape": [
+            1,
+            1000,
+            16,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_17",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "conditioning",
+          "shape": [
+            1024
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "eos_logit",
+          "shape": [
+            1
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_0",
+          "shape": [
+            1,
+            1000,
+            16,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_1",
+          "shape": [
+            1,
+            1000,
+            16,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_2",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        },
+        {
+          "name": "out_state_3",
+          "shape": [
+            1,
+            1000,
+            16,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_4",
+          "shape": [
+            1,
+            1000,
+            16,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_5",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        },
+        {
+          "name": "out_state_6",
+          "shape": [
+            1,
+            1000,
+            16,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_7",
+          "shape": [
+            1,
+            1000,
+            16,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_8",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        },
+        {
+          "name": "out_state_9",
+          "shape": [
+            1,
+            1000,
+            16,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_10",
+          "shape": [
+            1,
+            1000,
+            16,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_11",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        },
+        {
+          "name": "out_state_12",
+          "shape": [
+            1,
+            1000,
+            16,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_13",
+          "shape": [
+            1,
+            1000,
+            16,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_14",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        },
+        {
+          "name": "out_state_15",
+          "shape": [
+            1,
+            1000,
+            16,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_16",
+          "shape": [
+            1,
+            1000,
+            16,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_17",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        }
+      ]
+    },
+    "flow_lm_flow.onnx": {
+      "inputs": [
+        {
+          "name": "c",
+          "shape": [
+            1024
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "s",
+          "shape": [
+            1,
+            1
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "t",
+          "shape": [
+            1,
+            1
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "x",
+          "shape": [
+            1,
+            32
+          ],
+          "type": "tensor(float)"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "flow_dir",
+          "shape": [
+            1,
+            32
+          ],
+          "type": "tensor(float)"
+        }
+      ]
+    },
+    "mimi_decoder.onnx": {
+      "inputs": [
+        {
+          "name": "latent",
+          "shape": [
+            1,
+            "latent_frames",
+            32
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_0",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "state_1",
+          "shape": [
+            1,
+            512,
+            6
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_2",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "state_3",
+          "shape": [
+            1,
+            64,
+            2
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_4",
+          "shape": [
+            1,
+            256,
+            6
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_5",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "state_6",
+          "shape": [
+            1,
+            256,
+            2
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_7",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "state_8",
+          "shape": [
+            1,
+            128,
+            0
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_9",
+          "shape": [
+            1,
+            128,
+            5
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_10",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "state_11",
+          "shape": [
+            1,
+            128,
+            2
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_12",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "state_13",
+          "shape": [
+            1,
+            64,
+            0
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_14",
+          "shape": [
+            1,
+            64,
+            4
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_15",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "state_16",
+          "shape": [
+            1,
+            64,
+            2
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_17",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "state_18",
+          "shape": [
+            1,
+            32,
+            0
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_19",
+          "shape": [
+            1,
+            512,
+            8,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_20",
+          "shape": [
+            1,
+            512,
+            8,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_21",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        },
+        {
+          "name": "state_22",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        },
+        {
+          "name": "state_23",
+          "shape": [
+            1,
+            512,
+            8,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_24",
+          "shape": [
+            1,
+            512,
+            8,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_25",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        },
+        {
+          "name": "state_26",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        },
+        {
+          "name": "state_27",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "state_28",
+          "shape": [
+            1,
+            512,
+            16
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_29",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "state_30",
+          "shape": [
+            1,
+            1,
+            6
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_31",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "state_32",
+          "shape": [
+            1,
+            64,
+            2
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_33",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "state_34",
+          "shape": [
+            1,
+            32,
+            0
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_35",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "state_36",
+          "shape": [
+            1,
+            512,
+            2
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_37",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "state_38",
+          "shape": [
+            1,
+            64,
+            4
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_39",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "state_40",
+          "shape": [
+            1,
+            128,
+            2
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_41",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "state_42",
+          "shape": [
+            1,
+            64,
+            0
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_43",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "state_44",
+          "shape": [
+            1,
+            128,
+            5
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_45",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "state_46",
+          "shape": [
+            1,
+            256,
+            2
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_47",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "state_48",
+          "shape": [
+            1,
+            128,
+            0
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_49",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "state_50",
+          "shape": [
+            1,
+            256,
+            6
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_51",
+          "shape": [
+            1,
+            512,
+            8,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_52",
+          "shape": [
+            1,
+            512,
+            8,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_53",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        },
+        {
+          "name": "state_54",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        },
+        {
+          "name": "state_55",
+          "shape": [
+            1,
+            512,
+            8,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_56",
+          "shape": [
+            1,
+            512,
+            8,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "state_57",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        },
+        {
+          "name": "state_58",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        },
+        {
+          "name": "state_59",
+          "shape": [
+            1,
+            512,
+            16
+          ],
+          "type": "tensor(float)"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "audio_frame",
+          "shape": [
+            1,
+            1,
+            "audio_samples"
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_0",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "out_state_1",
+          "shape": [
+            1,
+            512,
+            "Sliceout_state_1_dim_2"
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_2",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "out_state_3",
+          "shape": [
+            1,
+            64,
+            "Sliceout_state_3_dim_2"
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_4",
+          "shape": [
+            1,
+            256,
+            "Subout_state_4_dim_2"
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_5",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "out_state_6",
+          "shape": [
+            1,
+            256,
+            "Sliceout_state_6_dim_2"
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_7",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "out_state_8",
+          "shape": [
+            1,
+            128,
+            0
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_9",
+          "shape": [
+            1,
+            128,
+            "Subout_state_9_dim_2"
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_10",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "out_state_11",
+          "shape": [
+            1,
+            128,
+            "Sliceout_state_11_dim_2"
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_12",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "out_state_13",
+          "shape": [
+            1,
+            64,
+            0
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_14",
+          "shape": [
+            1,
+            64,
+            "Subout_state_14_dim_2"
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_15",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "out_state_16",
+          "shape": [
+            1,
+            64,
+            "Sliceout_state_16_dim_2"
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_17",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "out_state_18",
+          "shape": [
+            1,
+            32,
+            0
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_19",
+          "shape": [
+            1,
+            512,
+            8,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_20",
+          "shape": [
+            1,
+            512,
+            8,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_21",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        },
+        {
+          "name": "out_state_22",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        },
+        {
+          "name": "out_state_23",
+          "shape": [
+            1,
+            512,
+            8,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_24",
+          "shape": [
+            1,
+            512,
+            8,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_25",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        },
+        {
+          "name": "out_state_26",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        },
+        {
+          "name": "out_state_27",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "out_state_28",
+          "shape": [
+            1,
+            512,
+            16
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_29",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "out_state_30",
+          "shape": [
+            1,
+            1,
+            6
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_31",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "out_state_32",
+          "shape": [
+            1,
+            64,
+            2
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_33",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "out_state_34",
+          "shape": [
+            1,
+            32,
+            0
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_35",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "out_state_36",
+          "shape": [
+            1,
+            512,
+            2
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_37",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "out_state_38",
+          "shape": [
+            1,
+            64,
+            4
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_39",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "out_state_40",
+          "shape": [
+            1,
+            128,
+            2
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_41",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "out_state_42",
+          "shape": [
+            1,
+            64,
+            0
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_43",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "out_state_44",
+          "shape": [
+            1,
+            128,
+            5
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_45",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "out_state_46",
+          "shape": [
+            1,
+            256,
+            2
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_47",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "out_state_48",
+          "shape": [
+            1,
+            128,
+            0
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_49",
+          "shape": [
+            1
+          ],
+          "type": "tensor(bool)"
+        },
+        {
+          "name": "out_state_50",
+          "shape": [
+            1,
+            256,
+            6
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_51",
+          "shape": [
+            1,
+            512,
+            8,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_52",
+          "shape": [
+            1,
+            512,
+            8,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_53",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        },
+        {
+          "name": "out_state_54",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        },
+        {
+          "name": "out_state_55",
+          "shape": [
+            1,
+            512,
+            8,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_56",
+          "shape": [
+            1,
+            512,
+            8,
+            64
+          ],
+          "type": "tensor(float)"
+        },
+        {
+          "name": "out_state_57",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        },
+        {
+          "name": "out_state_58",
+          "shape": [
+            1
+          ],
+          "type": "tensor(int64)"
+        },
+        {
+          "name": "out_state_59",
+          "shape": [
+            1,
+            512,
+            "Sliceout_state_59_dim_2"
+          ],
+          "type": "tensor(float)"
+        }
+      ]
+    }
+  },
+  "files": [
+    {
+      "name": "female_03.wav",
+      "bytes": 666496,
+      "sha256": "5111236ec3d84e8917a4d890f049003725fb731b59225db6b5bd18d5d68f018f"
+    },
+    {
+      "name": "flow_lm_flow.onnx",
+      "bytes": 39081891,
+      "sha256": "03edc4712a63804d2ae8128cf32d56b6eec0031c85f59359c5194011e3568889"
+    },
+    {
+      "name": "flow_lm_main.onnx",
+      "bytes": 302366599,
+      "sha256": "d7e31014100474bb24d375f5f006d4dfc34b41b88c88e71dc2ea4de7c14d5522"
+    },
+    {
+      "name": "mimi_decoder.onnx",
+      "bytes": 41423557,
+      "sha256": "3a64150fe55ff11f26407950ca4a9a6631db17e0a12c2021980dd93ec3404f45"
+    },
+    {
+      "name": "noise-seed0.f32",
+      "bytes": 131072,
+      "sha256": "37b9ef928d594e2b8d3f5502ada8b9218a0642f915cf8398cabc0ea6af2a6d77"
+    },
+    {
+      "name": "text-config.json",
+      "bytes": 4286,
+      "sha256": "b7ab1b012e7ef80bfc80e58723ea45e3d16953e7b1753af6616bbe0923af4600"
+    },
+    {
+      "name": "text_conditioner.onnx",
+      "bytes": 16388310,
+      "sha256": "0b548a8192abdd1606c8095ce5787290edd21f32ed05a8d06ec50cbf47ac11fb"
+    },
+    {
+      "name": "tokenizer.model",
+      "bytes": 60589,
+      "sha256": "2a9486f54e886c9459d60de909a0fb5c08dae2ad02c2f2ace6b80c7425af30c0"
+    },
+    {
+      "name": "voice_state_0.f32",
+      "bytes": 4096000,
+      "sha256": "7df879d10e64b92619d022c5878a2a59bf676d1e37b1886b198a621a51ece720"
+    },
+    {
+      "name": "voice_state_1.f32",
+      "bytes": 4096000,
+      "sha256": "c43afecaec79575e83e3b37b31445c6b1f8c65ea4c7e48c39dbb1de50f181e5e"
+    },
+    {
+      "name": "voice_state_10.f32",
+      "bytes": 4096000,
+      "sha256": "08bbc37393e68b87ad59c8118c2cba19540624011301c14cff3b62bdb84ca8da"
+    },
+    {
+      "name": "voice_state_11.i64",
+      "bytes": 8,
+      "sha256": "cf49bb8df1a0c94304967e28cce89aface154876ab203dcf24b84930649da472"
+    },
+    {
+      "name": "voice_state_12.f32",
+      "bytes": 4096000,
+      "sha256": "8883dec01ee3ffd351670737079dd1a9435e027624e79220ba7a19598bbbce68"
+    },
+    {
+      "name": "voice_state_13.f32",
+      "bytes": 4096000,
+      "sha256": "508f6543d72652ec4ff052d512feabae9e064f859f4429662e814e2ad9d82c0b"
+    },
+    {
+      "name": "voice_state_14.i64",
+      "bytes": 8,
+      "sha256": "cf49bb8df1a0c94304967e28cce89aface154876ab203dcf24b84930649da472"
+    },
+    {
+      "name": "voice_state_15.f32",
+      "bytes": 4096000,
+      "sha256": "2d7ea6f248f45fbb56034f6907b1fb94ac7bad688eeaaf3848bca56f30972131"
+    },
+    {
+      "name": "voice_state_16.f32",
+      "bytes": 4096000,
+      "sha256": "ce6ed5e1c5fc26f3fa7da8dfe6fee4217596b3407017339590525dd24d06222a"
+    },
+    {
+      "name": "voice_state_17.i64",
+      "bytes": 8,
+      "sha256": "cf49bb8df1a0c94304967e28cce89aface154876ab203dcf24b84930649da472"
+    },
+    {
+      "name": "voice_state_2.i64",
+      "bytes": 8,
+      "sha256": "cf49bb8df1a0c94304967e28cce89aface154876ab203dcf24b84930649da472"
+    },
+    {
+      "name": "voice_state_3.f32",
+      "bytes": 4096000,
+      "sha256": "3c5921ec187c959f9e9c5815c5a9c2f5b8188280e1dfffc0dc8eb6006729ca2c"
+    },
+    {
+      "name": "voice_state_4.f32",
+      "bytes": 4096000,
+      "sha256": "e2ff177e625bb96232c7bafd81fd51095c938e1ae986bc2b61922d6dd2d10263"
+    },
+    {
+      "name": "voice_state_5.i64",
+      "bytes": 8,
+      "sha256": "cf49bb8df1a0c94304967e28cce89aface154876ab203dcf24b84930649da472"
+    },
+    {
+      "name": "voice_state_6.f32",
+      "bytes": 4096000,
+      "sha256": "f4fec8b85b43fa3382a66578a56bb520ab91104f2cb459ee5f8d147fb352838c"
+    },
+    {
+      "name": "voice_state_7.f32",
+      "bytes": 4096000,
+      "sha256": "9d07e0693a72a3da8231fc3b45ecae443a2850bf97d3854b1acbfd61e164a5ac"
+    },
+    {
+      "name": "voice_state_8.i64",
+      "bytes": 8,
+      "sha256": "cf49bb8df1a0c94304967e28cce89aface154876ab203dcf24b84930649da472"
+    },
+    {
+      "name": "voice_state_9.f32",
+      "bytes": 4096000,
+      "sha256": "f6d64a333060e9987e715d69d5ab749b92e558305f06ba6d10feaef20b26598b"
+    }
+  ],
+  "voice_scope": "Fixed supplied voice state precomputed with Japanese checkpoint including bos_before_voice; no English voice cache reused.",
+  "model_source": "https://huggingface.co/takuma104/pocket-tts-ja",
+  "license_url": "https://creativecommons.org/licenses/by-nc/4.0/",
+  "changes": "Japanese checkpoint exported to FP32 ONNX with stock3.3.0 tanh GELU and FP32 caches; Mimi circular cache512 preserves250-position context during16-position writes; fixed female_03 state precomputed with Japanese BOS.",
+  "code_licenses": "Pocket TTS and reviewed exporter MIT; Google SentencePiece Apache2.0",
+  "distribution_scope": "Private noncommercial evaluation; no public release or commercial use authorized."
+}

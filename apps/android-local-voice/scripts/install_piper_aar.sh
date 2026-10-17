@@ -10,6 +10,7 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 DESTINATION="$ROOT/app/libs/piper-plus-release.aar"
 CHECKSUM_FILE="$ROOT/app/libs/piper-plus-release.aar.sha256"
 python3 "$ROOT/scripts/isolate_piper_onnx.py" "$SOURCE" "$DESTINATION"
+python3 "$ROOT/scripts/select_libcxx.py"
 (
   cd "$ROOT"
   sha256sum "app/libs/piper-plus-release.aar" > "$CHECKSUM_FILE"

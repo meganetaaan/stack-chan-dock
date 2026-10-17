@@ -1,0 +1,6 @@
+Derived from official Microsoft ONNX Runtime Android 1.30.0 (MIT).
+Source SHA-256: e7fb945e402205f6db858d65bb78d2bdb0812317b383976c9e3bceb4862c73f1
+Java/JNI namespace ai.onnxirodori; libs libonnxirodori.so and libonnxirodori4j_jni.so.
+Exported Ort API entry points renamed Iro; symbol lookup hashes rebuilt.
+Native executable sections, symbol indices, relocations, size and 16 KiB alignment preserved.
+Only arm64-v8a and x86_64 included. This is not an upstream distribution.

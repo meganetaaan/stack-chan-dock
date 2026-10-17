@@ -1,0 +1,7 @@
+{
+  "sha256": "7466ed097631a564ed6bff0b47768caa76bf03270d2047b5a65c03f497b824df",
+  "bytes": 9485032,
+  "source": "official Android NDK r30 (30.0.16248370) runtime in locally rebuilt Piper AAR",
+  "source_aar": "piper-plus-release.aar",
+  "rationale": "NDK r30 Piper imports std::__ndk1::__hash_memory, absent in Core's older runtime; all packaged imports require a static audit"
+}

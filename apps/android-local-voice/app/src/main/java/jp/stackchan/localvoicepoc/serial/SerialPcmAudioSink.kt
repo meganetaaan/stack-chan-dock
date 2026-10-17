@@ -5,6 +5,7 @@ import jp.stackchan.localvoicepoc.diagnostics.PlaybackTraceSession
 import jp.stackchan.localvoicepoc.diagnostics.PlaybackTraceStore
 import jp.stackchan.localvoicepoc.util.StreamingPcmResampler
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
@@ -44,6 +45,7 @@ class SerialPcmAudioSink(
     private var pendingAbort: Job? = null
     private var outbound: Channel<SpeakerItem>? = null
     private var sender: Deferred<Unit>? = null
+    @Volatile private var senderFailure: Throwable? = null
     private var resampler: StreamingPcmResampler? = null
     private var pending = ByteArray(0)
     private var negotiatedFrameBytes = 0
@@ -123,7 +125,10 @@ class SerialPcmAudioSink(
                         }
                     }
                 } catch (error: Throwable) {
-                    queue.close(error)
+                    if (outbound === queue) senderFailure = error
+                    // close() preserves pending sends; without a receiver a full queue can hang.
+                    // Drop queued audio and wake producers, preserving the writer's original error.
+                    queue.cancel(CancellationException("Speaker writer failed").apply { initCause(error) })
                     throw error
                 }
             }
@@ -244,7 +249,13 @@ class SerialPcmAudioSink(
     }
 
     private suspend fun enqueue(item: SpeakerItem) {
-        checkNotNull(outbound) { "Speaker output has not begun" }.send(item)
+        val queue = checkNotNull(outbound) { "Speaker output has not begun" }
+        senderFailure?.let { throw it }
+        try {
+            queue.send(item)
+        } catch (error: Throwable) {
+            throw (if (outbound === queue) senderFailure else null) ?: error
+        }
     }
 
     private suspend fun sendPcm(bytes: ByteArray) {
@@ -378,6 +389,7 @@ class SerialPcmAudioSink(
     }
 
     private fun resetSessionMetrics(sampleRate: Int) {
+        senderFailure = null
         inputSampleRate = sampleRate
         inputSamples = 0
         outputPcmBytes = 0
@@ -481,6 +493,7 @@ class SerialPcmAudioSink(
         outbound = null
         sender?.cancel()
         sender = null
+        senderFailure = null
         collector?.cancel()
         collector = null
         resampler?.reset()

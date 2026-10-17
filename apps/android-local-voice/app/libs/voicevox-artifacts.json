@@ -1,0 +1,17 @@
+{
+  "java_packages.zip": {
+    "url": "https://github.com/VOICEVOX/voicevox_core/releases/download/0.17.0/java_packages.zip",
+    "sha256": "e22f120adfb1a680bafd01287bc7aa3f104aa7e437d5d710107a16036c38b017"
+  },
+  "voicevox_onnxruntime-android-arm64-1.23.2.tgz": {
+    "url": "https://github.com/VOICEVOX/onnxruntime-builder/releases/download/voicevox_onnxruntime-1.23.2/voicevox_onnxruntime-android-arm64-1.23.2.tgz",
+    "sha256": "43e6fc2a89ea6412d4cc20215042a3b34da22fdf05c1bb76256a686f82378d46"
+  },
+  "libc++_shared.so": {
+    "sha256": "7466ed097631a564ed6bff0b47768caa76bf03270d2047b5a65c03f497b824df",
+    "bytes": 9485032,
+    "source": "official Android NDK r30 (30.0.16248370) runtime in locally rebuilt Piper AAR",
+    "source_aar": "piper-plus-release.aar",
+    "rationale": "NDK r30 Piper imports std::__ndk1::__hash_memory, absent in Core's older runtime; all packaged imports require a static audit"
+  }
+}

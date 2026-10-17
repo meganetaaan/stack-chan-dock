@@ -3,12 +3,17 @@ package jp.stackchan.localvoicepoc.audio
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
+import android.media.AudioTimestamp
+import android.os.Build
+import jp.stackchan.localvoicepoc.voicevox.TtsTiming
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 
-class AndroidPcmAudioSink : PcmAudioSink {
+class AndroidPcmAudioSink(private val timing: TtsTiming? = null) : PcmAudioSink {
     private val lock = Any()
     @Volatile private var track: AudioTrack? = null
     private var framesWritten = 0L
@@ -17,6 +22,7 @@ class AndroidPcmAudioSink : PcmAudioSink {
     override suspend fun begin(sampleRate: Int) = withContext(Dispatchers.IO) {
         synchronized(lock) {
             releaseLocked()
+            val createStart = System.nanoTime()
             val minimum = AudioTrack.getMinBufferSize(
                 sampleRate,
                 AudioFormat.CHANNEL_OUT_MONO,
@@ -45,7 +51,13 @@ class AndroidPcmAudioSink : PcmAudioSink {
                 check(created.state == AudioTrack.STATE_INITIALIZED) {
                     "AudioTrack could not be initialized"
                 }
+                timing?.duration("audioTrackCreate", System.nanoTime() - createStart)
+                timing?.value("bufferFrames", created.bufferSizeInFrames.toString())
+                if (Build.VERSION.SDK_INT >= 31) timing?.value("startThresholdFrames", created.startThresholdInFrames.toString())
+                timing?.event("playCall")
+                val playStart = System.nanoTime()
                 created.play()
+                timing?.duration("playApi", System.nanoTime() - playStart)
                 track = created
                 framesWritten = 0L
                 this@AndroidPcmAudioSink.sampleRate = sampleRate
@@ -60,14 +72,19 @@ class AndroidPcmAudioSink : PcmAudioSink {
         val local = synchronized(lock) { track }
             ?: throw IllegalStateException("Audio sink has not been started")
         var offset = 0
+        val firstWrite = synchronized(lock) { framesWritten == 0L }
+        if (firstWrite) timing?.event("firstWriteCall")
         while (offset < samples.size) {
+            currentCoroutineContext().ensureActive()
             val written = local.write(
                 samples,
                 offset,
-                samples.size - offset,
+                if (timing == null) samples.size - offset else minOf(samples.size - offset, 240),
                 AudioTrack.WRITE_BLOCKING,
             )
             if (written <= 0) throw IllegalStateException("AudioTrack.write failed: $written")
+            if (firstWrite && offset == 0) timing?.event("firstWriteReturn")
+            observePlayback(local)
             synchronized(lock) {
                 if (track === local) framesWritten += written
             }
@@ -126,6 +143,7 @@ class AndroidPcmAudioSink : PcmAudioSink {
             (expectedRemainingMs + DRAIN_TIMEOUT_MARGIN_MS) * NANOS_PER_MILLISECOND
 
         while (true) {
+            observePlayback(pending.track)
             val playbackPosition = pending.track.playbackPositionOrNull() ?: return
             if (playbackPosition >= pending.targetFrames) {
                 delay(OUTPUT_SETTLE_MS)
@@ -141,6 +159,17 @@ class AndroidPcmAudioSink : PcmAudioSink {
                 return
             }
             delay(DRAIN_POLL_INTERVAL_MS)
+        }
+    }
+
+    private fun observePlayback(local: AudioTrack) {
+        if (timing == null) return
+        val head = local.playbackPositionOrNull() ?: 0L
+        if (head > 0) timing.event("firstPositivePlaybackHeadObserved")
+        val timestamp = AudioTimestamp()
+        if (runCatching { local.getTimestamp(timestamp) }.getOrDefault(false) && timestamp.framePosition > 0 && sampleRate > 0) {
+            timing.event("firstAudioTimestampObserved")
+            timing.observation("frameZeroOutputEstimate", timestamp.nanoTime - timestamp.framePosition * 1_000_000_000L / sampleRate)
         }
     }
 

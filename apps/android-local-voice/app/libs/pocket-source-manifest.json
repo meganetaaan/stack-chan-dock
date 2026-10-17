@@ -1,0 +1,28 @@
+{
+  "PocketRuntime.kt": "9b3727f64db47f398b274d88ceb4bb0aced2e90f11e736ee86ff0f7edd4539e4",
+  "PocketText.kt": "6d85fbd6493422a4aa793d66c3895fd06b6c6d0c1278453fd8fcf5f462247374",
+  "PocketTokenizer.kt": "3496ab0f11bbeb6240e35318c1967ef194383e5cbbffbf38f0d33d28535a61cc",
+  "pocket_manifest_sha256": "f4150f04019876f1f322a2a06845111efbabae08212c7ed783918aece54770b6",
+  "onnx_aar_sha256": "4dd3a4e5e9d4284d5c6a8438166ab5e0ad144260907dacb71193a54ad6fa01eb",
+  "tokenizer_so_sha256": "71acdf79fc81fe0d806eb9af1de9b198edf9830f2d9da6fab7a5a8352c13e1e4",
+  "source": "read-only dev.irte.voice v0.4.1-pocket-ja / task-3",
+  "model_zip_sha256": "408939da4678395856b7f63d76fec4c635505dee9ae5fe88212117177bd11e02",
+  "ported_source_sha256": {
+    "src/main/java/dev/irte/voice/PocketEngine.kt": "a5e70467cb52950a2e933e3edbfd2bc55dc10bceef39c6b6dd25296f6fb0fc0d",
+    "src/main/java/dev/irte/voice/PocketRuntime.kt": "11dc5996e7312868cd8fcbbe479a7cce0f7b234b27bf6f528387f0c9e80b3242",
+    "src/main/java/dev/irte/voice/PocketText.kt": "6d85fbd6493422a4aa793d66c3895fd06b6c6d0c1278453fd8fcf5f462247374",
+    "src/main/java/dev/irte/voice/PocketTokenizer.kt": "3496ab0f11bbeb6240e35318c1967ef194383e5cbbffbf38f0d33d28535a61cc",
+    "src/main/java/jp/stackchan/localvoicepoc/pocket/PocketAssets.kt": "a702cc0b9019c4680018d25b12a5585753acd69029242fed7bed1b23e51db413",
+    "src/main/java/jp/stackchan/localvoicepoc/pocket/PocketAssetStore.kt": "b9635f1f824676c2d825c63506bd6a3205fd38d0a10545b29d01cffa6c5f65f0",
+    "src/main/java/jp/stackchan/localvoicepoc/pocket/PocketSetup.kt": "6fe8d613acb362e8ab8834afc2329e28ecfb50f7d7a249618525cecc249edde1",
+    "src/main/java/jp/stackchan/localvoicepoc/pocket/PocketSynthesizer.kt": "55ff90a77c8fad9933bf8f0b1ce255aa6b4d8a3d669c4545cbca390a6e42867c"
+  },
+  "ort_version": "1.30.0",
+  "pocket_version": "3.3.0",
+  "runtime_changes": [
+    "serialized per-request cancellation reset for resident re-speech",
+    "generation/coroutine active checks",
+    "1000-character input bound",
+    "24kHz bounded SpeechSynthesizer handoff; accepted PCM16 rounding"
+  ]
+}

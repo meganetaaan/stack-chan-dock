@@ -43,6 +43,11 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import jp.stackchan.localvoicepoc.audio.ConversationAudioMode
+import android.content.Intent
+import androidx.core.net.toUri
+import android.provider.Settings
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -73,6 +78,8 @@ import jp.stackchan.localvoicepoc.model.ModelComponent
 import jp.stackchan.localvoicepoc.mcp.McpProfile
 import jp.stackchan.localvoicepoc.piper.PiperAssetLinks
 import java.util.Locale
+import jp.stackchan.localvoicepoc.voicevox.TtsBackend
+import jp.stackchan.localvoicepoc.voicevox.VoicevoxAssets
 
 private enum class AppPage { CONVERSATION, SETTINGS }
 
@@ -101,72 +108,139 @@ fun StackChanScreen(
     onFinishSetup: () -> Unit,
     onRetryStartup: () -> Unit,
     onDismissError: () -> Unit,
+    onImportReferenceEncoder: () -> Unit = {},
+    onCreateReferenceVoice: (String) -> Unit = {},
+    onSelectReferenceVoice: (String?) -> Unit = {},
+    onCancelReferenceVoice: () -> Unit = {},
+    onOpenReferenceRecording: () -> Unit = {},
+    onCloseReferenceRecording: () -> Unit = {},
+    onStartReferenceRecording: () -> Unit = {},
+    onStopReferenceRecording: () -> Unit = {},
+    onPlayReferenceRecording: (String?) -> Unit = {},
+    onStopReferencePlayback: () -> Unit = {},
+    onNameReferenceRecording: (String) -> Unit = {},
+    onSaveReferenceRecording: () -> Unit = {},
+    onRequestDeleteReferenceRecording: (String) -> Unit = {},
+    onCancelDeleteReferenceRecording: () -> Unit = {},
+    onConfirmDeleteReferenceRecording: () -> Unit = {},
+    onAudioModeSelected: (ConversationAudioMode) -> Unit = {},
+    onTtsBackendSelected: (TtsBackend) -> Unit = {},
+    onPrepareVoicevox: () -> Unit = {},
+    onPrepareSano: () -> Unit = {},
+    onPreparePocketPresets: () -> Unit = {},
+    onPreviewPocketVoice: (String?) -> Unit = {},
+    onRemovePocketPreset: (String) -> Unit = {},
+    onPreparePocket: () -> Unit = {},
+    onPickPocketAsset: () -> Unit = {},
+    onPickSanoAsset: () -> Unit = {},
+    onConfirmVoicevoxTerms: () -> Unit = {},
+    onConfirmSanoTerms: () -> Unit = {},
+    onConfirmPocketTerms: () -> Unit = {},
+    onDismissPocketTerms: () -> Unit = {},
+    onDismissSanoTerms: () -> Unit = {},
+    onDismissVoicevoxTerms: () -> Unit = {},
+    onPreviewVoice: () -> Unit = {},
+    onStopVoicePreview: () -> Unit = {},
+    onDiagnoseVoicevox: () -> Unit = {},
 ) {
     var page by rememberSaveable { mutableStateOf(AppPage.CONVERSATION) }
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(state.error, state.startupStatus) {
         val message = state.error ?: return@LaunchedEffect
-        if (state.startupStatus == AppStartupStatus.READY) {
-            snackbarHostState.showSnackbar(message)
+        if (state.error != null) {
+            snackbarHostState.showSnackbar(if (page == AppPage.SETTINGS || message.startsWith("ほかの音声") || message.startsWith("マイク") || message.startsWith("録音")) message else "会話を続けられませんでした。設定を確認して、もう一度お試しください")
             onDismissError()
         }
     }
 
-    when (state.startupStatus) {
-        AppStartupStatus.CHECKING,
-        AppStartupStatus.RESTORING,
-        -> StartupScreen(state)
-
-        AppStartupStatus.FAILED -> StartupFailureScreen(
+    BackHandler(enabled = page == AppPage.SETTINGS) { page = AppPage.CONVERSATION }
+    if (state.referenceRecording.open) {
+        val context = LocalContext.current
+        jp.stackchan.localvoicepoc.recording.ReferenceRecordingScreen(state.referenceRecording,state.microphoneGranted,
+            onCloseReferenceRecording,onStartReferenceRecording,onStopReferenceRecording,onPlayReferenceRecording,
+            onStopReferencePlayback,onNameReferenceRecording,onSaveReferenceRecording,
+            microphoneDenied=state.microphoneDenied,
+            onOpenPermissionSettings={context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,"package:${context.packageName}".toUri()))},
+            snackbarHostState=snackbarHostState,
+            voices=state.pocketVoices,canManageVoices=state.canManageReferenceVoices,
+            pocketReady=state.ttsBackend==TtsBackend.POCKET&&state.pocketLoaded,
+            onImportEncoder=onImportReferenceEncoder,onCreateVoice=onCreateReferenceVoice,
+            onSelectVoice=onSelectReferenceVoice,onCancelVoice=onCancelReferenceVoice,
+            onRequestDelete=onRequestDeleteReferenceRecording,onCancelDelete=onCancelDeleteReferenceRecording,
+            onConfirmDelete=onConfirmDeleteReferenceRecording)
+    } else if (page == AppPage.SETTINGS) {
+        SettingsScreen(
             state = state,
-            onRetry = onRetryStartup,
-        )
-
-        AppStartupStatus.SETUP_REQUIRED -> SetupScreen(
-            state = state,
+            onBack = { page = AppPage.CONVERSATION },
+            onRetryStartup = onRetryStartup,
+            onOpenReferenceRecording = onOpenReferenceRecording,
             onGemmaModelSelected = onGemmaModelSelected,
             onPrepareModels = onPrepareModels,
+            onPickPiperModel = onPickPiperModel,
+            onPickPiperConfig = onPickPiperConfig,
+            onPickDictionary = onPickDictionary,
             onPrepareRecommendedPiper = onPrepareRecommendedPiper,
+            onLoadPiper = onLoadPiper,
             onRetryUsbConnection = onRetryUsbConnection,
-            onFinishSetup = onFinishSetup,
-            onDismissError = onDismissError,
+            onSaveMcpProfile = onSaveMcpProfile,
+            onDeleteMcpProfile = onDeleteMcpProfile,
+            snackbarHostState = snackbarHostState,
+            onTtsBackendSelected = onTtsBackendSelected,
+            onPrepareVoicevox = onPrepareVoicevox,
+            onPrepareSano = onPrepareSano,
+            onPreparePocketPresets = onPreparePocketPresets,
+            onPreviewPocketVoice = onPreviewPocketVoice,
+            onRemovePocketPreset = onRemovePocketPreset,
+            onImportReferenceEncoder = onImportReferenceEncoder,
+            onSelectReferenceVoice = onSelectReferenceVoice,
+            onCancelReferenceVoice = onCancelReferenceVoice,
+            onPreparePocket = onPreparePocket,
+            onPickPocketAsset = onPickPocketAsset,
+            onPickSanoAsset = onPickSanoAsset,
+            onPreviewVoice = onPreviewVoice,
+            onStopVoicePreview = onStopVoicePreview,
+            onDiagnoseVoicevox = onDiagnoseVoicevox,
         )
-
-        AppStartupStatus.READY -> {
-            BackHandler(enabled = page == AppPage.SETTINGS) { page = AppPage.CONVERSATION }
-            if (page == AppPage.SETTINGS) {
-                SettingsScreen(
-                    state = state,
-                    onBack = { page = AppPage.CONVERSATION },
-                    onGemmaModelSelected = onGemmaModelSelected,
-                    onPrepareModels = onPrepareModels,
-                    onPickPiperModel = onPickPiperModel,
-                    onPickPiperConfig = onPickPiperConfig,
-                    onPickDictionary = onPickDictionary,
-                    onPrepareRecommendedPiper = onPrepareRecommendedPiper,
-                    onLoadPiper = onLoadPiper,
-                    onRetryUsbConnection = onRetryUsbConnection,
-                    onSaveMcpProfile = onSaveMcpProfile,
-                    onDeleteMcpProfile = onDeleteMcpProfile,
-                    snackbarHostState = snackbarHostState,
-                )
-            } else {
-                ConversationScreen(
-                    state = state,
-                    onOpenSettings = { page = AppPage.SETTINGS },
-                    onAutomaticModeChanged = onAutomaticModeChanged,
-                    onStartAutomatic = onStartAutomatic,
-                    onStopConversation = onStopConversation,
-                    onStartPushToTalk = onStartPushToTalk,
-                    onStopPushToTalk = onStopPushToTalk,
-                    onRetryUsbConnection = onRetryUsbConnection,
-                    snackbarHostState = snackbarHostState,
-                )
-            }
-        }
+    } else {
+        ConversationScreen(
+            state = state,
+            onAudioModeSelected = onAudioModeSelected,
+            onOpenSettings = { page = AppPage.SETTINGS },
+            onAutomaticModeChanged = onAutomaticModeChanged,
+            onStartAutomatic = onStartAutomatic,
+            onStopConversation = onStopConversation,
+            onStartPushToTalk = onStartPushToTalk,
+            onStopPushToTalk = onStopPushToTalk,
+            onRetryUsbConnection = onRetryUsbConnection,
+            snackbarHostState = snackbarHostState,
+        )
     }
 
+    if (state.pocketTermsConfirmationRequired) {
+        jp.stackchan.localvoicepoc.pocket.PocketTermsDialog(onConfirmPocketTerms, onDismissPocketTerms)
+    }
+    if (state.sanoTermsConfirmationRequired) {
+        jp.stackchan.localvoicepoc.sano.SanoTermsDialog(onConfirmSanoTerms, onDismissSanoTerms)
+    }
+    if (state.voicevoxTermsConfirmationRequired) {
+        val uriHandler = LocalUriHandler.current
+        AlertDialog(
+            onDismissRequest = onDismissVoicevoxTerms,
+            title = { Text("VOICEVOX:ずんだもん の利用規約") },
+            text = {
+                Column {
+                    Text("音声の利用・公開には VOICEVOX:ずんだもん のクレジットが必要です。モデル・runtime・音源の規約を確認してください。")
+                    listOf("モデル規約" to VoicevoxAssets.MODEL_TERMS, "runtime規約" to VoicevoxAssets.RUNTIME_TERMS,
+                        "ずんだもん音源規約" to VoicevoxAssets.CHARACTER_TERMS).forEach { (label, url) ->
+                        TextButton(onClick = { uriHandler.openUri(url) }) { Text(label) }
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = onConfirmVoicevoxTerms) { Text("同意して準備") } },
+            dismissButton = { TextButton(onClick = onDismissVoicevoxTerms) { Text("キャンセル") } },
+        )
+    }
     if (state.piperTermsConfirmationRequired) {
         PiperTermsDialog(
             onConfirm = onConfirmRecommendedPiperTerms,
@@ -257,6 +331,18 @@ private fun SetupScreen(
     onRetryUsbConnection: () -> Unit,
     onFinishSetup: () -> Unit,
     onDismissError: () -> Unit,
+    onTtsBackendSelected: (TtsBackend) -> Unit = {},
+    onPrepareVoicevox: () -> Unit = {},
+    onPrepareSano: () -> Unit = {},
+    onPreparePocketPresets: () -> Unit = {},
+    onPreviewPocketVoice: (String?) -> Unit = {},
+    onRemovePocketPreset: (String) -> Unit = {},
+    onPreparePocket: () -> Unit = {},
+    onPickPocketAsset: () -> Unit = {},
+    onPickSanoAsset: () -> Unit = {},
+    onPreviewVoice: () -> Unit = {},
+    onStopVoicePreview: () -> Unit = {},
+    onDiagnoseVoicevox: () -> Unit = {},
 ) {
     Scaffold(
         topBar = { TopAppBar(title = { Text("ｽﾀｯｸﾁｬﾝを準備") }) },
@@ -269,10 +355,19 @@ private fun SetupScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
             item { SetupStepIndicator(state.setupStep) }
+            item { TtsSelector(state, onTtsBackendSelected) }
+            if (state.ttsBackend == TtsBackend.VOICEVOX) {
+                item { VoicevoxSetup(state, onPrepareVoicevox) }
+            } else if (state.ttsBackend == TtsBackend.POCKET) {
+                item { jp.stackchan.localvoicepoc.pocket.PocketSetup(state, onPreparePocket, onPickPocketAsset) }
+            } else if (state.ttsBackend == TtsBackend.SANO) {
+                item { jp.stackchan.localvoicepoc.sano.SanoSetup(state, onPrepareSano, onPickSanoAsset) }
+            }
+            item { TtsPreviewControls(state, onPreviewVoice, onStopVoicePreview, onDiagnoseVoicevox) }
             item {
                 when (state.setupStep) {
                     SetupStep.MODEL -> ModelSetupStep(state, onGemmaModelSelected, onPrepareModels)
-                    SetupStep.VOICE -> VoiceSetupStep(state, onPrepareRecommendedPiper)
+                    SetupStep.VOICE -> if (state.ttsBackend.isPiper) VoiceSetupStep(state, onPrepareRecommendedPiper)
                     SetupStep.DEVICE -> DeviceSetupStep(state, onRetryUsbConnection, onFinishSetup)
                 }
             }
@@ -414,8 +509,9 @@ private fun DeviceSetupStep(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ConversationScreen(
+internal fun ConversationScreen(
     state: MainUiState,
+    onAudioModeSelected: (ConversationAudioMode) -> Unit = {},
     onOpenSettings: () -> Unit,
     onAutomaticModeChanged: (Boolean) -> Unit,
     onStartAutomatic: () -> Unit,
@@ -437,6 +533,9 @@ private fun ConversationScreen(
                 title = {
                     Column {
                         Text("ｽﾀｯｸﾁｬﾝ", maxLines = 1)
+                        if (state.ttsBackend == TtsBackend.VOICEVOX) {
+                            Text(VoicevoxAssets.CREDIT, style = MaterialTheme.typography.labelSmall)
+                        }
                         Text(
                             phaseLabel(state.phase, state.automaticMode),
                             style = MaterialTheme.typography.labelMedium,
@@ -445,7 +544,7 @@ private fun ConversationScreen(
                     }
                 },
                 actions = {
-                    ConnectionDot(state.usbStatus)
+                    if (state.audioMode == ConversationAudioMode.DOCK) ConnectionDot(state.usbStatus)
                     IconButton(onClick = onOpenSettings) {
                         LucideIcon(LucideR.drawable.lucide_ic_settings, "設定")
                     }
@@ -469,8 +568,22 @@ private fun ConversationScreen(
                 .fillMaxSize()
                 .padding(padding),
         ) {
-            if (state.usbStatus != UsbConnectionStatus.READY) {
+            AudioModeSelector(state, onAudioModeSelected)
+            if (!state.assetsReady) {
+                Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(if (state.modelSetupRunning || state.startupStatus == AppStartupStatus.CHECKING) "会話の準備をしています" else "会話を始める準備が必要です", Modifier.weight(1f))
+                    TextButton(onClick = onOpenSettings) { Text("設定で準備") }
+                }
+            }
+            if (state.audioMode == ConversationAudioMode.DOCK && state.usbStatus != UsbConnectionStatus.READY) {
                 UsbBanner(state, onRetryUsbConnection)
+            }
+            if (state.audioMode == ConversationAudioMode.PHONE && state.microphoneDenied) {
+                val context = LocalContext.current
+                Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("マイクの使用を許可してください", Modifier.weight(1f))
+                    TextButton(onClick = { context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, "package:${context.packageName}".toUri())) }) { Text("権限の設定") }
+                }
             }
             LazyColumn(
                 state = listState,
@@ -518,7 +631,7 @@ private fun ConversationControlBar(
                 SegmentedButton(
                     selected = state.automaticMode == automatic,
                     onClick = { onAutomaticModeChanged(automatic) },
-                    enabled = state.phase == ConversationPhase.IDLE,
+                    enabled = state.phase == ConversationPhase.IDLE && !state.audioTransition,
                     shape = SegmentedButtonDefaults.itemShape(index, 2),
                 ) { Text(label, maxLines = 1) }
             }
@@ -534,7 +647,7 @@ private fun ConversationControlBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
-            enabled = action.enabled,
+            enabled = action.enabled && !state.audioTransition,
             onClick = when (action.kind) {
                 ConversationActionKind.START_AUTOMATIC -> onStartAutomatic
                 ConversationActionKind.START_RECORDING -> onStartPushToTalk
@@ -554,6 +667,12 @@ private fun ConversationControlBar(
 private fun SettingsScreen(
     state: MainUiState,
     onBack: () -> Unit,
+    onImportReferenceEncoder: () -> Unit = {},
+    onCreateReferenceVoice: (String) -> Unit = {},
+    onSelectReferenceVoice: (String?) -> Unit = {},
+    onCancelReferenceVoice: () -> Unit = {},
+    onOpenReferenceRecording: () -> Unit = {},
+    onRetryStartup: () -> Unit = {},
     onGemmaModelSelected: (String) -> Unit,
     onPrepareModels: () -> Unit,
     onPickPiperModel: () -> Unit,
@@ -565,6 +684,18 @@ private fun SettingsScreen(
     onSaveMcpProfile: (McpProfile, String?) -> Unit,
     onDeleteMcpProfile: (String) -> Unit,
     snackbarHostState: SnackbarHostState,
+    onTtsBackendSelected: (TtsBackend) -> Unit,
+    onPrepareVoicevox: () -> Unit,
+    onPrepareSano: () -> Unit,
+    onPreparePocketPresets: () -> Unit,
+    onPreviewPocketVoice: (String?) -> Unit,
+    onRemovePocketPreset: (String) -> Unit,
+    onPreparePocket: () -> Unit,
+    onPickPocketAsset: () -> Unit,
+    onPickSanoAsset: () -> Unit,
+    onPreviewVoice: () -> Unit,
+    onStopVoicePreview: () -> Unit,
+    onDiagnoseVoicevox: () -> Unit,
 ) {
     var showAdvancedVoice by rememberSaveable { mutableStateOf(false) }
     var editingMcpProfile by remember { mutableStateOf<McpProfile?>(null) }
@@ -589,15 +720,21 @@ private fun SettingsScreen(
                 .padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            if (state.startupStatus == AppStartupStatus.FAILED) {
+                item {
+                    Text(if (state.sdkStatus is SdkBootstrap.Status.Ready) "準備を続けられませんでした" else "アプリを閉じて、もう一度開いてください")
+                    if (state.sdkStatus is SdkBootstrap.Status.Ready) OutlinedButton(onClick = onRetryStartup, enabled = state.canStartModelMutation) { Text("準備をやり直す") }
+                }
+            }
             item {
                 SettingsSection("会話モデル") {
                     GemmaModelSelector(state.selectedGemmaModel, state.canStartModelMutation, onGemmaModelSelected)
-                    StatusRow("ランタイム", state.selectedGemmaModel.runtimeLabel)
                     StatusRow("端末ツール", if (state.selectedGemmaModel.supportsTools) "日時・バッテリー" else "非対応")
                     ModelProgressLine(state.selectedGemmaModel.name, state.modelProgress.getValue(ModelComponent.LLM))
+                    ModelProgressLine("音声認識", state.modelProgress.getValue(ModelComponent.STT))
                     Button(
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = state.canStartModelMutation,
+                        enabled = state.canStartModelMutation && state.sdkStatus is SdkBootstrap.Status.Ready,
                         onClick = onPrepareModels,
                     ) { Text("選択したモデルを準備") }
                     GemmaInformationLinks(state.selectedGemmaModel)
@@ -606,6 +743,18 @@ private fun SettingsScreen(
             item { HorizontalDivider() }
             item {
                 SettingsSection("音声") {
+                    OutlinedButton(onClick=onOpenReferenceRecording,enabled=state.canChangeAudioMode,modifier=Modifier.fillMaxWidth()){Text("自分の声を録音")}
+                    TtsSelector(state, onTtsBackendSelected)
+                    TtsPreviewControls(state, onPreviewVoice, onStopVoicePreview, onDiagnoseVoicevox)
+                    if (state.ttsBackend == TtsBackend.VOICEVOX) {
+                        VoicevoxSetup(state, onPrepareVoicevox)
+                    } else if (state.ttsBackend == TtsBackend.POCKET) {
+                        jp.stackchan.localvoicepoc.pocket.PocketSetup(state, onPreparePocket, onPickPocketAsset,
+                            onImportReferenceEncoder, onPreparePocketPresets, onSelectReferenceVoice,
+                            onPreviewPocketVoice, onRemovePocketPreset, onCancelReferenceVoice)
+                    } else if (state.ttsBackend == TtsBackend.SANO) {
+                        jp.stackchan.localvoicepoc.sano.SanoSetup(state, onPrepareSano, onPickSanoAsset)
+                    } else {
                     StatusRow("推奨音声", if (state.piperLoaded) "利用中" else "未読込")
                     ModelProgressLine("Piper Plus", state.piperProgress)
                     OutlinedButton(
@@ -626,6 +775,7 @@ private fun SettingsScreen(
                         )
                     }
                 }
+            }
             }
             item { HorizontalDivider() }
             item {
@@ -822,10 +972,29 @@ private fun EmptyConversation(state: MainUiState) {
         )
         Spacer(Modifier.height(6.dp))
         Text(
-            if (state.usbStatus == UsbConnectionStatus.READY) "CoreS3と接続しています" else "CoreS3を接続してください",
+            when {
+                !state.assetsReady -> "設定で会話モデルと音声を準備してください"
+                state.audioTransition -> "切り替えています"
+                state.audioMode == ConversationAudioMode.PHONE && !state.microphoneGranted -> "マイクを許可すると、スマホだけで話せます"
+                state.audioMode == ConversationAudioMode.PHONE -> "スマホに話しかけてください"
+                state.usbStatus == UsbConnectionStatus.READY -> "接続端末に話しかけてください"
+                else -> "接続端末をつなぐか、スマホを選んでください"
+            },
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AudioModeSelector(state: MainUiState, select: (ConversationAudioMode) -> Unit) {
+    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+        listOf(ConversationAudioMode.PHONE, ConversationAudioMode.DOCK).forEachIndexed { index, mode ->
+            SegmentedButton(selected = state.audioMode == mode, onClick = { select(mode) },
+                enabled = state.canChangeAudioMode,
+                shape = SegmentedButtonDefaults.itemShape(index, 2)) { Text(mode.label) }
+        }
     }
 }
 
@@ -1071,9 +1240,9 @@ private data class ConversationAction(
 private fun conversationAction(state: MainUiState): ConversationAction = when {
     state.automaticMode && state.phase == ConversationPhase.IDLE -> ConversationAction(
         ConversationActionKind.START_AUTOMATIC,
-        "自動会話をはじめる",
+        if (state.canRequestMicrophone) "マイクを許可" else "自動会話をはじめる",
         LucideR.drawable.lucide_ic_radio,
-        state.pipelineReady,
+        state.pipelineReady || state.canRequestMicrophone,
     )
     state.automaticMode -> ConversationAction(
         ConversationActionKind.STOP,
@@ -1085,7 +1254,7 @@ private fun conversationAction(state: MainUiState): ConversationAction = when {
         ConversationActionKind.START_RECORDING,
         "話しかける",
         LucideR.drawable.lucide_ic_mic,
-        state.pipelineReady,
+        state.pipelineReady || state.canRequestMicrophone,
     )
     state.phase == ConversationPhase.RECORDING -> ConversationAction(
         ConversationActionKind.FINISH_RECORDING,
@@ -1103,13 +1272,14 @@ private fun conversationAction(state: MainUiState): ConversationAction = when {
 
 private fun restoreProgress(state: MainUiState): Float {
     val model = state.modelProgress.values.map { it.fraction }.average().toFloat()
-    return if (state.modelsReady) (0.8f + state.piperProgress.fraction * 0.2f) else model * 0.8f
+    val voice = when (state.ttsBackend) { TtsBackend.VOICEVOX -> state.voicevoxProgress; TtsBackend.SANO -> state.sanoProgress; TtsBackend.POCKET -> state.pocketProgress; else -> state.piperProgress }
+    return if (state.modelsReady) (0.8f + voice.fraction * 0.2f) else model * 0.8f
 }
 
 private fun usbStatusLabel(state: MainUiState): String = when (state.usbStatus) {
-    UsbConnectionStatus.DISCONNECTED -> "CoreS3は未接続です"
+    UsbConnectionStatus.DISCONNECTED -> "接続端末が見つかりません"
     UsbConnectionStatus.PERMISSION_PENDING -> "USBの利用許可を待っています"
-    UsbConnectionStatus.CONNECTING -> "CoreS3へ接続しています"
+    UsbConnectionStatus.CONNECTING -> "接続端末につないでいます"
     UsbConnectionStatus.READY -> "接続済み"
     UsbConnectionStatus.ERROR -> "USB通信でエラーが発生しました"
 }
@@ -1180,5 +1350,97 @@ private fun ConversationPreview() {
             onRetryUsbConnection = {},
             snackbarHostState = remember { SnackbarHostState() },
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TtsSelector(state: MainUiState, select: (TtsBackend) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        TtsBackend.entries.chunked(2).forEach { row ->
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                row.forEachIndexed { index, backend ->
+                    SegmentedButton(selected = state.ttsBackend == backend, onClick = { select(backend) },
+                        enabled = state.canStartModelMutation && when (backend) {
+                            TtsBackend.PIPER -> state.piperAarPresent
+                            TtsBackend.PIPER2 -> state.piper2Available
+                            TtsBackend.VOICEVOX -> state.voicevoxAvailable
+                            TtsBackend.SANO -> state.sanoAvailable
+                            TtsBackend.POCKET -> state.pocketAvailable
+                        }, shape = SegmentedButtonDefaults.itemShape(index,row.size)) { Text(backend.label) }
+                }
+            }
+        }
+        if (state.ttsBackend.isPiper) {
+            Text(jp.stackchan.localvoicepoc.piper.PIPER_MODEL_CREDIT)
+            val uriHandler = LocalUriHandler.current
+            TextButton(onClick = { uriHandler.openUri(PiperAssetLinks.MODEL_LICENSE_URL) }) { Text("推奨音声の利用条件") }
+        }
+    }
+}
+
+@Composable
+private fun VoicevoxSetup(state: MainUiState, prepare: () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(VoicevoxAssets.CREDIT, fontWeight = FontWeight.SemiBold)
+        Text("ずんだもん・ノーマル。公開時にはこのクレジットを表示してください。Android 10 以上で利用できます。")
+        ModelProgressLine("VOICEVOX", state.voicevoxProgress)
+        Text("初回ダウンロード: 約 81.9 MB（モデル・辞書）。試聴はスマホのスピーカーから再生します。")
+        OutlinedButton(onClick = prepare, enabled = state.voicevoxAvailable && state.canStartModelMutation) {
+            Text(if (state.voicevoxLoaded) "VOICEVOX を再準備" else "VOICEVOX を準備")
+        }
+    }
+}
+
+@Composable
+private fun TtsPreviewControls(state: MainUiState, preview: () -> Unit, stop: () -> Unit, diagnose: () -> Unit) {
+    var showDiagnostics by rememberSaveable { mutableStateOf(false) }
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (state.ttsPreviewRunning) {
+            OutlinedButton(onClick = stop) { Text(if (state.voicevoxDiagnosticRunning) "診断を停止" else "試聴を停止") }
+        } else {
+            OutlinedButton(onClick = preview, enabled = state.voiceReady && state.canStartModelMutation) {
+                Text("スマホで音声を試聴")
+            }
+        }
+        TextButton(onClick = { showDiagnostics = !showDiagnostics }) { Text(if (showDiagnostics) "詳細な音声診断を閉じる" else "詳細な音声診断") }
+        if (showDiagnostics) {
+        if (state.ttsBackend == TtsBackend.VOICEVOX) {
+            OutlinedButton(onClick = diagnose, enabled = state.voicevoxLoaded && state.canStartModelMutation) {
+                Text("開始時間を診断（CPU 1/2/4/auto）")
+            }
+            Text("各設定で初回とwarm2回を再生します。停止時は処理終了とCPU4復元を待ちます。", style = MaterialTheme.typography.bodySmall)
+        }
+        if (state.voicevoxDiagnosticReport.isNotBlank()) {
+            val context = androidx.compose.ui.platform.LocalContext.current
+            TextButton(onClick = {
+                val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                clipboard.setPrimaryClip(android.content.ClipData.newPlainText("TTS timing", state.voicevoxDiagnosticReport))
+            }) { Text("診断結果をコピー") }
+            androidx.compose.foundation.text.selection.SelectionContainer {
+                Text(state.voicevoxDiagnosticReport.takeLast(1800), style = MaterialTheme.typography.bodySmall)
+            }
+        }
+        }
+        Text("選んだ音声で短い挨拶を再生します。",
+            style = MaterialTheme.typography.bodySmall)
+    }
+}
+
+@Preview(name = "スマホ・マイク許可前", showBackground = true, widthDp = 344, heightDp = 760, fontScale = 1.5f)
+@Composable
+private fun PhonePermissionPreview() { PhoneModePreview(MainUiState(audioMode = ConversationAudioMode.PHONE,
+    sdkStatus = SdkBootstrap.Status.Ready, modelsReady = true, pocketLoaded = true, ttsBackend = TtsBackend.POCKET)) }
+
+@Preview(name = "スマホ・準備前", showBackground = true, widthDp = 360, heightDp = 800)
+@Composable
+private fun PhonePreparationPreview() { PhoneModePreview(MainUiState(audioMode = ConversationAudioMode.PHONE, sdkStatus = SdkBootstrap.Status.Ready)) }
+
+@Composable
+private fun PhoneModePreview(state: MainUiState) {
+    StackChanTheme {
+        ConversationScreen(state = state, onOpenSettings = {}, onAutomaticModeChanged = {}, onStartAutomatic = {},
+            onStopConversation = {}, onStartPushToTalk = {}, onStopPushToTalk = {}, onRetryUsbConnection = {},
+            snackbarHostState = remember { SnackbarHostState() })
     }
 }

@@ -298,7 +298,7 @@ class ConversationEngineTest {
     private object OneChunkSynthesizer : SpeechSynthesizer {
         override val isLoaded = true
 
-        override suspend fun load(installation: PiperInstallation) = Unit
+        suspend fun load(installation: PiperInstallation) = Unit
 
         override fun synthesize(text: String): Flow<SpeechSynthesizer.AudioChunk> = flow {
             emit(SpeechSynthesizer.AudioChunk(24_000, ShortArray(240)))
@@ -314,7 +314,7 @@ class ConversationEngineTest {
         val calls = AtomicInteger(0)
         val allowFirstSentenceToComplete = CompletableDeferred<Unit>()
 
-        override suspend fun load(installation: PiperInstallation) = Unit
+        suspend fun load(installation: PiperInstallation) = Unit
 
         override fun synthesize(text: String): Flow<SpeechSynthesizer.AudioChunk> = flow {
             val call = calls.incrementAndGet()
