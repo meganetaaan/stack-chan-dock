@@ -1,0 +1,9 @@
+{
+  "modelPath": "C:/path/to/models/Qwen3.5-0.8B-Japanese-SFT-v2-Q4_K_M.gguf",
+  "runtimePath": "C:/path/to/llama.cpp/llama-server.exe",
+  "runtimeSha256": "REPLACE_WITH_VERIFIED_EXECUTABLE_SHA256",
+  "endpoint": "http://127.0.0.1:8081",
+  "device": { "port": "REPLACE_WITH_SELECTED_COM_PORT", "serialNumber": "REPLACE_WITH_SELECTED_USB_SERIAL" },
+  "python": "python",
+  "powershell": "C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"
+}

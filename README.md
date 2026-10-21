@@ -4,9 +4,9 @@ stack-chan-dockは、ｽﾀｯｸﾁｬﾝをUSBでPCやスマートフォンへ
 `contracts/usb-cdc-v2`をｽﾀｯｸﾁｬﾝとの境界に置き、ｽﾀｯｸﾁｬﾝ側のFirmwareは身体とUSBデバイス、PCまたはスマートフォン上のdock appは音声処理や対話処理を担当します。
 
 ```text
-Android local voice dock app ─┐
-                              ├── USB CDC v2 contract ── Stack-chan Firmware
-PC Codex voice dock app ──────┘                           （外部リポジトリ）
+Android local voice dock app ──┐
+Windows local voice dock app ──┼─ USB CDC v2 contract ── Stack-chan Firmware
+PC Codex voice dock app ───────┘                         （外部リポジトリ）
 ```
 
 ## 用語
@@ -23,6 +23,7 @@ PC Codex voice dock app ──────┘                           （外�
 | [`contracts/usb-cdc-v2`](contracts/usb-cdc-v2/README.md) | USB framing、音声制御、application eventの正本 |
 | [`apps/android-local-voice`](apps/android-local-voice/README.md) | Android端末上でASR、LLM、TTSをローカル実行するdock app |
 | [`apps/codex-voice`](apps/codex-voice/README.md) | PC上のCodex app-serverとｽﾀｯｸﾁｬﾝを接続するdock app |
+| [`apps/windows-local-voice`](apps/windows-local-voice/README.md) | Windows日本語ASR・localhost Qwen・Harukaを使うPC dock app |
 
 各dock appは、build設定、依存関係、開発スクリプトを自身のディレクトリ内に持ちます。
 USB wire形式はdock appごとに定義せず、`contracts/usb-cdc-v2`を参照します。
@@ -37,6 +38,22 @@ cd apps/android-local-voice
 
 モデルの準備、Android端末への導入、実機検証は[Android dock appのREADME](apps/android-local-voice/README.md)を参照してください。
 
+## Windows local Japanese voice dock app
+
+ローカル日本語LLMを使うPCモードは、リポジトリ直下の`Start-Local-Voice.cmd`から起動します。
+Windowsの日本語ASR、既存のQwen GGUF、Haruka TTSを使用します。Enterを押したときだけ3秒録音し、`q`＋EnterまたはCtrl+Cで停止します。
+Codexモードは従来どおり`apps/codex-voice`から起動できます。両方から同じUSBを同時に開かず、使用中のdock appを終了して切り替えてください。
+
+```powershell
+Set-Location apps/windows-local-voice
+npm test
+npm run check:host
+npm start
+```
+
+設定と機器の選択は[Windows local voice dock appのREADME](apps/windows-local-voice/README.md)を参照してください。
+`check:host`はUSBを開かず、録音・再生も開始しません。追加のNodeパッケージや新しいモデル取得はありません。
+
 ## Codex voice dock app
 
 ```bash
@@ -50,7 +67,7 @@ Codex app-serverへの接続とsystemd user serviceの導入は[Codex dock app�
 
 ## リポジトリ全体の検証
 
-各dock appの依存関係を準備した後、次のコマンドでcontract適合試験と両dock appのテストを実行できます。
+各dock appの依存関係を準備した後、次のコマンドでcontract適合試験と各dock appのテストを実行できます。
 
 ```bash
 ./scripts/verify.sh

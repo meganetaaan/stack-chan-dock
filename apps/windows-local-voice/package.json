@@ -1,0 +1,13 @@
+{
+  "name": "@stack-chan/windows-local-voice-dock",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Windows Japanese ASR, loopback Qwen and Haruka TTS over Stack-chan USB CDC v2.",
+  "type": "module",
+  "engines": { "node": ">=22.12.0" },
+  "scripts": {
+    "start": "node src/cli.mjs",
+    "check:host": "node src/cli.mjs --check-host",
+    "test": "node --test test/*.test.mjs"
+  }
+}
