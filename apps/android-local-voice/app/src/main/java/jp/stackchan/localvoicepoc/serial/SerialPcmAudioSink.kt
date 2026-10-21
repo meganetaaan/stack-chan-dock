@@ -23,7 +23,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.currentCoroutineContext
 import java.io.IOException
 
 class SerialPcmAudioSink(
@@ -93,9 +92,13 @@ class SerialPcmAudioSink(
         speakerTextSupported = ready.capabilities and StackChanCapabilities.SPEAKER_TEXT != 0
         traceWriteSession = traceSession
         connection.setWriteObserver(::recordUsbWrite)
-        val supervisor = SupervisorJob(currentCoroutineContext()[Job])
+        // TTS flowOn/callbackFlow collectors have a per-sentence scope. The
+        // USB session spans all sentences; attaching it to a collector prevents
+        // that collect from completing before finish() can close the session.
+        // Keep the session under the sink, with explicit finish/abort cleanup.
+        val supervisor = SupervisorJob(scope.coroutineContext[Job])
         sessionSupervisor = supervisor
-        val sessionScope = CoroutineScope(currentCoroutineContext() + supervisor)
+        val sessionScope = CoroutineScope(scope.coroutineContext + supervisor)
         collector = sessionScope.launch(start = CoroutineStart.UNDISPATCHED) {
             connection.frames.collect { frame -> handleFrame(frame) }
         }

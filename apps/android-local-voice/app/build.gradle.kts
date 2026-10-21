@@ -27,8 +27,8 @@ android {
         applicationId = "jp.stackchan.localvoicepoc"
         minSdk = 26
         targetSdk = 36
-        versionCode = 9
-        versionName = "0.1.8-pocket-presets"
+        versionCode = 10
+        versionName = "0.1.9-tts-session-fix"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("boolean", "PIPER_PLUS_AAR_PRESENT", piperAar.exists().toString())
